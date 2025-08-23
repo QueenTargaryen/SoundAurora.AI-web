@@ -1,21 +1,33 @@
 <!doctype html>
 <html lang="tr">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Sound Aurora</title>
-<link rel="icon" href="data:," />
-<style>
-  :root{color-scheme:dark light}
-  body{margin:0;min-height:100svh;display:grid;place-items:center;background:#0b1220;color:#eaf2ff;font:16px/1.5 system-ui,Segoe UI,Roboto,Arial}
-  .box{max-width:680px;padding:28px 24px;border:1px solid #203050;border-radius:16px;background:rgba(255,255,255,.02);box-shadow:0 10px 30px rgba(0,0,0,.25)}
-  h1{margin:0 0 8px;font-size:28px}
-  p{margin:0 0 12px;color:#a6b3c6}
-  a.btn{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:10px;border:1px solid #2c6cff;text-decoration:none}
-</style>
-<div class="box">
-  <h1>Sound Aurora</h1>
-  <p>Site yayında. İçerik hazırlıyoruz.</p>
-  <p><small>API durumu: <code><a href="https://api.quynhelden.com/health">/health</a></code></small></p>
-  <a class="btn" href="/">Ana sayfa</a>
-</div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SoundAurora</title>
+  <meta name="description" content="SoundAurora — Fast Studio Quality by AI" />
+  <style>
+    :root{ --bg:#0b0f17; --bg2:#0e1421; }
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; margin:0; }
+    body{
+      min-height:100svh;
+      background: radial-gradient(120% 120% at 80% 10%, var(--bg2) 0%, var(--bg) 60%);
+      display:grid; place-items:center;
+      padding:24px;
+    }
+    img.hero{
+      width: min(92vw, 980px);
+      max-height: 86vh;
+      object-fit: contain;
+      display:block;
+      border-radius: 18px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.55);
+    }
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+  </style>
+</head>
+<body>
+  <h1 class="sr-only">SoundAurora — Fast Studio Quality by AI</h1>
+  <img src="hero.png" alt="SoundAurora — Fast Studio Quality by AI" class="hero" />
+</body>
 </html>
