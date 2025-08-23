@@ -1,2 +1,5 @@
-# SoundAurora.AI-web
-Sound Aurora — yapay zekâ destekli ses üretimi ve dublaj platformu. Bu repo quynhelden.com web sitesinin (Netlify) kaynak kodudur.
+# Sound Aurora Web
+
+quynhelden.com için web arayüzü (Netlify).  
+API: https://api.quynhelden.com
+
