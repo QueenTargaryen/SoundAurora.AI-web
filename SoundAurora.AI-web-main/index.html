@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SoundAurora - AI Ses Klonlama</title>
+  <meta name="description" content="SoundAurora — Fast Studio Quality by AI" />
+
+  <!-- 🔹 Sadece intro için gereken minik stiller -->
+  <style>
+    /* Var olan stillerin aynen korunması için sadece overlay'e özel css */
+    #intro-screen{
+      position:fixed; inset:0; background:#000; z-index:9999;
+      display:flex; align-items:center; justify-content:center;
+    }
+    #intro-video{ width:100%; height:100%; object-fit:cover; }
+    #skip-btn{
+      position:fixed; right:12px; bottom:12px; z-index:10000;
+      background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.35);
+      padding:8px 12px; border-radius:10px; cursor:pointer; backdrop-filter:blur(4px);
+    }
+    .fade-out{ animation:fadeOut .5s ease forwards; }
+    @keyframes fadeOut{ to{ opacity:0; visibility:hidden; } }
+  </style>
+
+  <!-- 🔹 SENİN ORİJİNAL STİLLERİN (AYNEN) -->
+  <style>
+    :root{ 
+      --bg:#0b0f17; 
+      --bg2:#0e1421; 
+      --accent:#00d4ff;
+      --accent2:#ff4757;
+      --text:#ffffff;
+      --text-muted:#8892b0;
+      --border:#2a2f3a;
+    }
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body{
+      background: radial-gradient(120% 120% at 80% 10%, var(--bg2) 0%, var(--bg) 60%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .hero-section { text-align: center; padding: 40px 0; margin-bottom: 40px; }
+    .logo { width:80px; height:80px; background:var(--accent2); border-radius:50%; margin:0 auto 20px;
+            display:flex; align-items:center; justify-content:center; font-size:24px; color:#fff; }
+    .hero-title { font-size:3rem; font-weight:700; background:linear-gradient(135deg,var(--accent),var(--accent2));
+                  -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:20px 0; }
+    .hero-subtitle { font-size:1.2rem; color:var(--text-muted); margin-bottom:40px; }
+    .language-toggle { position:fixed; top:20px; right:20px; z-index:1000; }
+    .lang-btn { background:var(--border); border:none; color:var(--text); padding:8px 16px; border-radius:6px;
+                cursor:pointer; margin-left:8px; transition:all .3s ease; }
+    .lang-btn.active { background:var(--accent); color:var(--bg); }
+    .tts-panel { background:rgba(255,255,255,.05); backdrop-filter:blur(10px); border-radius:20px; padding:30px;
+                 margin:30px 0; border:1px solid var(--border); }
+    .form-group { margin-bottom:25px; }
+    .form-label { display:block; margin-bottom:8px; font-weight:600; color:var(--text); }
+    .form-input,.form-textarea,.form-select { width:100%; padding:12px 16px; border:1px solid var(--border);
+                 border-radius:10px; background:rgba(255,255,255,.1); color:var(--text); font-size:16px; transition:border-color .3s; }
+    .form-textarea { min-height:120px; resize:vertical; }
+    .form-input:focus,.form-textarea:focus,.form-select:focus { outline:none; border-color:var(--accent); }
+    .btn { padding:12px 30px; border-radius:10px; border:none; font-weight:600; cursor:pointer; transition:all .3s;
+           font-size:16px; display:inline-flex; align-items:center; gap:10px; }
+    .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 10px 25px rgba(0,212,255,.3); }
+    .btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+    .audio-player { background:rgba(0,0,0,.3); border-radius:15px; padding:20px; margin:20px 0; text-align:center; border:1px solid var(--border); }
+    .loading { display:none; text-align:center; color:var(--accent); margin:20px 0; }
+    .loading.show { display:block; }
+    .spinner { width:40px; height:40px; border:3px solid var(--border); border-top:3px solid var(--accent);
+               border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 10px; }
+    @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+    .error { background:rgba(255,71,87,.1); border:1px solid rgba(255,71,87,.3); color:#ff4757;
+             padding:15px; border-radius:10px; margin:15px 0; display:none; }
+    .error.show { display:block; }
+    .success { background:rgba(0,212,255,.1); border:1px solid rgba(0,212,255,.3); color:var(--accent);
+               padding:15px; border-radius:10px; margin:15px 0; display:none; }
+    .success.show { display:block; }
+    @media (max-width:768px){
+      .hero-title{ font-size:2rem; }
+      .container{ padding:15px; }
+      .tts-panel{ padding:20px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 🔸 INTRO OVERLAY (videon videos/intro.mp4 yolunda olmalı) -->
+  <div id="intro-screen">
+    <video id="intro-video" autoplay muted playsinline preload="auto">
+      <source src="videos/intro.mp4" type="video/mp4" />
+      Tarayıcınız video etiketini desteklemiyor.
+    </video>
+    <button id="skip-btn" aria-label="Skip intro">Skip</button>
+  </div>
+
+  <!-- 🔸 ASIL SAYFA (değiştirmedim) -->
+  <div class="language-toggle">
+    <button class="lang-btn active" data-lang="tr">TR</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
+
+  <div class="container">
+    <div class="hero-section">
+      <div class="logo">🎙️</div>
+      <h1 class="hero-title" data-tr="SoundAurora" data-en="SoundAurora">SoundAurora</h1>
+      <p class="hero-subtitle" data-tr="Yapay Zeka ile Hızlı Stüdyo Kalitesi" data-en="Fast Studio Quality by AI">Yapay Zeka ile Hızlı Stüdyo Kalitesi</p>
+    </div>
+
+    <div class="tts-panel">
+      <h2 data-tr="Metinden Ses Üret" data-en="Text to Speech">Metinden Ses Üret</h2>
+
+      <form id="ttsForm">
+        <div class="form-group">
+          <label class="form-label" data-tr="Metninizi yazın:" data-en="Enter your text:">Metninizi yazın:</label>
+          <textarea id="textInput" class="form-textarea"
+            data-tr-placeholder="Buraya çevirmek istediğiniz metni yazın..."
+            data-en-placeholder="Enter the text you want to convert to speech..."
+            placeholder="Buraya çevirmek istediğiniz metni yazın..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-tr="Dil Seçimi:" data-en="Language Selection:">Dil Seçimi:</label>
+          <select id="languageSelect" class="form-select">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-tr="Ses Hızı:" data-en="Speech Speed:">Ses Hızı:</label>
+          <select id="speedSelect" class="form-select">
+            <option value="0.8" data-tr="Yavaş" data-en="Slow">Yavaş</option>
+            <option value="1.0" selected data-tr="Normal" data-en="Normal">Normal</option>
+            <option value="1.2" data-tr="Hızlı" data-en="Fast">Hızlı</option>
+            <option value="1.5" data-tr="Çok Hızlı" data-en="Very Fast">Çok Hızlı</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="generateBtn">
+          <span data-tr="🎵 Ses Üret" data-en="🎵 Generate Audio">🎵 Ses Üret</span>
+        </button>
+      </form>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p data-tr="Ses üretiliyor, lütfen bekleyin..." data-en="Generating audio, please wait...">Ses üretiliyor, lütfen bekleyin...</p>
+      </div>
+
+      <div class="error" id="error"></div>
+      <div class="success" id="success"></div>
+
+      <div class="audio-player" id="audioPlayer" style="display: none;">
+        <h3 data-tr="Oluşturulan Ses:" data-en="Generated Audio:">Oluşturulan Ses:</h3>
+        <audio controls style="width: 100%; margin: 10px 0;">
+          <source id="audioSource" type="audio/wav">
+        </audio>
+        <br>
+        <a href="#" id="downloadLink" class="btn btn-primary" download>
+          <span data-tr="📥 İndir" data-en="📥 Download">📥 İndir</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔹 SCRIPT: Intro akışı + senin TTS kodların (değişmeden) -->
+  <script>
+    // --- INTRO ---
+    const intro = document.getElementById('intro-screen');
+    const video = document.getElementById('intro-video');
+    const skip  = document.getElementById('skip-btn');
+
+    function showMain(){
+      if (intro) {
+        intro.classList.add('fade-out');
+        setTimeout(() => intro.remove(), 500);
+      }
+      // intro kalkınca sayfa doğal akışında
+    }
+
+    function tryPlay(){
+      if (!video) return showMain();
+      video.muted = true;
+      const p = video.play();
+      if (p && typeof p.then === 'function') {
+        p.catch(() => { /* autoplay bloklanırsa kullanıcı butona basar */ });
+      }
+    }
+
+    video?.addEventListener('ended', showMain);
+    skip?.addEventListener('click', showMain);
+    document.addEventListener('DOMContentLoaded', () => {
+      tryPlay();
+      setTimeout(showMain, 12000); // emniyet
+    });
+
+    // --- DİL DEĞİŞİMİ ---
+    const langBtns = document.querySelectorAll('.lang-btn');
+    let currentLang = 'tr';
+
+    langBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        langBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLang = btn.dataset.lang;
+        document.getElementById('languageSelect').value = currentLang;
+        updateTexts();
+      });
+    });
+
+    function updateTexts() {
+      document.querySelectorAll('[data-tr]').forEach(el => {
+        if (el.hasAttribute('data-' + currentLang)) {
+          if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.placeholder = el.getAttribute('data-' + currentLang + '-placeholder') || el.getAttribute('data-' + currentLang);
+          } else if (el.tagName === 'OPTION') {
+            el.textContent = el.getAttribute('data-' + currentLang);
+          } else {
+            el.textContent = el.getAttribute('data-' + currentLang);
+          }
+        }
+      });
+    }
+
+    // --- TTS FORM ---
+    const form = document.getElementById('ttsForm');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    const success = document.getElementById('success');
+    const audioPlayer = document.getElementById('audioPlayer');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = document.getElementById('textInput').value.trim();
+      const language = document.getElementById('languageSelect').value;
+      const speed = parseFloat(document.getElementById('speedSelect').value);
+
+      if (!text) {
+        showError(currentLang === 'tr' ? 'Lütfen bir metin girin!' : 'Please enter some text!');
+        return;
+      }
+
+      loading.classList.add('show');
+      error.classList.remove('show');
+      success.classList.remove('show');
+      audioPlayer.style.display = 'none';
+      document.getElementById('generateBtn').disabled = true;
+
+      try {
+        const response = await fetch('/api/tts/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, language, speed, emotion: 'neutral' })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const audioSource = document.getElementById('audioSource');
+          const downloadLink = document.getElementById('downloadLink');
+
+          audioSource.src = data.download_url;
+          downloadLink.href = data.download_url;
+          downloadLink.download = `soundaurora_${data.audio_id}.wav`;
+
+          audioPlayer.style.display = 'block';
+          showSuccess(currentLang === 'tr'
+            ? `Ses başarıyla üretildi! (${data.text_length} karakter)`
+            : `Audio generated successfully! (${data.text_length} characters)`);
+        } else {
+          throw new Error(data.detail || 'Bilinmeyen hata');
+        }
+      } catch (err) {
+        showError((currentLang === 'tr' ? 'Hata: ' : 'Error: ') + err.message);
+      } finally {
+        loading.classList.remove('show');
+        document.getElementById('generateBtn').disabled = false;
+      }
+    });
+
+    function showError(message) {
+      error.textContent = message;
+      error.classList.add('show');
+      setTimeout(() => error.classList.remove('show'), 5000);
+    }
+    function showSuccess(message) {
+      success.textContent = message;
+      success.classList.add('show');
+      setTimeout(() => success.classList.remove('show'), 5000);
+    }
+
+    // Başlangıçta metinleri yükle
+    updateTexts();
+  </script>
+</body>
+</html>
