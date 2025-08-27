@@ -1,16 +1,23 @@
 /* ========= SoundAurora - main.js (HTML/CSS'e dokunmadan) ========= */
+/* Quynh: Bu dosyayı komple değiştir. */
 
-// --- CONFIG ---
+//////////////////////
+// CONFIG
+//////////////////////
 const CONFIG = {
   DEMO_PASSWORD: "quynh_demo_001",
-  INTRO_SHOW_ONCE: true,
-  INTRO_DURATION_MS: 10000,
-  VIDEO_PATH: "assets/intro.mp4",
+  INTRO_SHOW_ONCE: true,               // intro bir kez gösterilsin mi?
+  USER_INTRO_MS: 10000,                // senin videon için maksimum süre (ms)
+  CLOUD_INTRO_MS: 7000,                // cloud intro için maksimum süre (ms)
+  PATH_USER_INTRO: "assets/intro.mp4",
+  PATH_CLOUD_INTRO: "assets/intro_cloud.mp4", // varsa oynatılır, yoksa yazı bekletmesi
   LS_LANG: "preferredLang",
   LS_INTRO: "introSeen",
 };
 
-// --- I18N ---
+//////////////////////
+// I18N
+//////////////////////
 const I18N = {
   en: {
     intro: {
@@ -32,7 +39,7 @@ const I18N = {
       heroSubtitle: "Voice cloning & podcast creation with AI",
       menuTitle: "Features",
       tts: { title: "Text to Speech", desc: "Turn your text into a pro voice file", btn: "Start" },
-      clone:{ title: "Voice Cloning", desc:"Clone your own voice and use it",  btn:"Start" },
+      clone:{ title:"Voice Cloning", desc:"Clone your own voice and use it", btn:"Start" },
       podcast:{title:"Generate Podcast", desc:"Turn your script into an automatic podcast", btn:"Start"},
       stt:  { title:"Speech → Text", desc:"Transcribe your recordings into text", btn:"Start" },
     },
@@ -64,7 +71,9 @@ const I18N = {
   },
 };
 
-// --- STATE/HELPERS ---
+//////////////////////
+// HELPERS
+//////////////////////
 let currentLang = localStorage.getItem(CONFIG.LS_LANG) || "en";
 const $ = (s) => document.querySelector(s);
 const show = (el) => el && (el.style.display = "");
@@ -72,17 +81,64 @@ const hide = (el) => el && (el.style.display = "none");
 const setText = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
 const setPh   = (id, t) => { const el = document.getElementById(id); if (el && "placeholder" in el) el.placeholder = t; };
 
+function addLoginHeadingStyles() {
+  // CSS'i JS ile enjekte ediyoruz; style.css'e dokunmasan da çalışır
+  if (document.getElementById("sa-login-heading-style")) return;
+  const css = `
+    .login-heading{ text-align:center; margin-bottom:1.5rem; }
+    .login-heading .intro-title{
+      font-size:clamp(28px,4vw,48px); font-weight:800;
+      background:linear-gradient(135deg,var(--gold-primary),var(--gold-secondary));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-shadow:0 0 24px rgba(212,175,55,.25); margin:0 0 .25rem 0;
+    }
+    .login-heading .intro-tagline{ color:var(--text-secondary,#c9c9c9); margin:0 0 .25rem 0; }
+    .login-heading .intro-small{ color:var(--gold-secondary,#d4af37); letter-spacing:.3px;
+      margin:0; font-size:.95rem; opacity:.9; }
+  `;
+  const style = document.createElement("style");
+  style.id = "sa-login-heading-style";
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
+function ensureLoginHeading() {
+  addLoginHeadingStyles();
+  const modal = document.getElementById('login-modal');
+  if (!modal) return;
+
+  // .modal-content'in hemen üstüne yeni blok
+  let wrap = document.getElementById('login-heading');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'login-heading';
+    wrap.className = 'login-heading';
+    const modalContent = modal.querySelector('.modal-content');
+    modal.insertBefore(wrap, modalContent || modal.firstChild);
+  }
+  const t = (I18N[currentLang] || I18N.en).intro;
+  wrap.innerHTML = `
+    <h1 class="intro-title">${t.title}</h1>
+    <p class="intro-tagline">${t.tagline}</p>
+    <p class="intro-small">${t.small}</p>
+  `;
+  wrap.style.display = 'block';
+
+  // kutu içindeki başlığı gizle
+  const modalTitle = document.getElementById('modal-title');
+  if (modalTitle) modalTitle.style.display = 'none';
+}
+
 async function fileExists(url) {
   try {
-    const r = await fetch(url, { method: "HEAD", cache: "no-store" });
+    const r = await fetch(url + "?cb=" + Date.now(), { method: "HEAD", cache: "no-store" });
     const size = +(r.headers.get("content-length") || 0);
     return r.ok && size > 0;
   } catch { return false; }
 }
 
-// --- I18N apply ---
 function applyIntroTexts() {
-  const t = I18N[currentLang].intro;
+  const t = (I18N[currentLang] || I18N.en).intro;
   setText("intro-title", t.title);
   setText("intro-tagline", t.tagline);
   setText("intro-small", t.small);
@@ -91,7 +147,7 @@ function applyIntroTexts() {
   document.documentElement.setAttribute("lang", currentLang);
 }
 function applyModalTexts() {
-  const t = I18N[currentLang].modal;
+  const t = (I18N[currentLang] || I18N.en).modal;
   setText("modal-title", t.title);
   setText("modal-subtitle", t.subtitle);
   setPh("password-input", t.placeholder);
@@ -99,7 +155,7 @@ function applyModalTexts() {
   if (btnTxt) btnTxt.textContent = t.submit;
 }
 function applyMainTexts() {
-  const t = I18N[currentLang].menu;
+  const t = (I18N[currentLang] || I18N.en).menu;
   setText("hero-title", t.heroTitle);
   setText("hero-subtitle", t.heroSubtitle);
   setText("menu-title", t.menuTitle);
@@ -107,88 +163,19 @@ function applyMainTexts() {
   setText("clone-title", t.clone.title); setText("clone-desc", t.clone.desc); setText("clone-btn", t.clone.btn);
   setText("podcast-title", t.podcast.title); setText("podcast-desc", t.podcast.desc); setText("podcast-btn", t.podcast.btn);
   setText("stt-title", t.stt.title); setText("stt-desc", t.stt.desc); setText("stt-btn", t.stt.btn);
-  const disp = $("#lang-display-main"); if (disp) disp.textContent = I18N[currentLang].intro.opposite;
+  const disp = $("#lang-display-main"); if (disp) disp.textContent = (I18N[currentLang]||I18N.en).intro.opposite;
   document.documentElement.setAttribute("lang", currentLang);
 }
 
-// --- Language toggle ---
 function toggleLang() {
   currentLang = (currentLang === "en") ? "tr" : "en";
   localStorage.setItem(CONFIG.LS_LANG, currentLang);
-  // Güncel ekranda ne görünüyorsa onu çevir
-  if ($("#intro-overlay") && $("#intro-overlay").style.display !== "none") {
-    applyIntroTexts();
-  }
-  applyModalTexts();
-  applyMainTexts();
+  applyIntroTexts(); applyModalTexts(); applyMainTexts();
 }
 
-// --- Intro flow ---
-let introTimer = null;
-function goLogin(markSeen) {
-  if (markSeen && CONFIG.INTRO_SHOW_ONCE) localStorage.setItem(CONFIG.LS_INTRO, "1");
-  const overlay = $("#intro-overlay");
-  const modal = $("#login-modal");
-  overlay && overlay.classList.add("fade-out");
-  setTimeout(() => {
-    hide(overlay);
-    modal && modal.classList.add("show");
-    modal && modal.setAttribute("aria-hidden", "false");
-    const inp = $("#password-input");
-    setTimeout(() => inp && inp.focus(), 100);
-  }, 600);
-}
-
-async function runIntro() {
-  const overlay = $("#intro-overlay");
-  const video   = $("#intro-video");
-  const skipBtn = $("#skip-intro");
-  const langBtn = $("#lang-toggle-intro");
-
-  applyIntroTexts();
-
-  // Daha önce gerçekten izlendiyse atla
-  if (CONFIG.INTRO_SHOW_ONCE && localStorage.getItem(CONFIG.LS_INTRO) === "1") {
-    goLogin(false);
-    return;
-  }
-
-  // Video var mı?
-  const hasVideo = await fileExists(CONFIG.VIDEO_PATH);
-  if (!hasVideo) { // hiç pıt yapmadan modala geç
-    hide(overlay);
-    goLogin(false);
-    return;
-  }
-
-  // Intro göster
-  show(overlay);
-
-  // autoplay
-  if (video && video.canPlayType("video/mp4")) {
-    video.muted = true;
-    video.playsInline = true;
-    video.addEventListener("canplay", () => { video.play().catch(()=>{}); }, { once:true });
-    video.addEventListener("ended", () => goLogin(true), { once:true });
-    video.addEventListener("error", () => goLogin(false), { once:true });
-  }
-
-  // failsafe süre
-  introTimer = setTimeout(() => goLogin(true), CONFIG.INTRO_DURATION_MS);
-
-  // Skip
-  if (skipBtn) skipBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    try { video && video.pause(); } catch {}
-    clearTimeout(introTimer);
-    goLogin(true);
-  });
-
-  // Dil butonu
-  if (langBtn) langBtn.addEventListener("click", toggleLang);
-}
-
-// --- Login flow ---
+//////////////////////
+// LOGIN & MENU
+//////////////////////
 function runLogin() {
   applyModalTexts();
   const form = $("#login-form");
@@ -202,15 +189,13 @@ function runLogin() {
     const val = (inp?.value || "").trim();
     if (val === CONFIG.DEMO_PASSWORD) {
       err && (err.textContent = "");
-      hide(modal);
-      show(main);
+      hide(modal); show(main);
     } else {
-      err && (err.textContent = I18N[currentLang].modal.error);
+      err && (err.textContent = (I18N[currentLang]||I18N.en).modal.error);
     }
   });
 }
 
-// --- Main menu placeholders ---
 function wireMenu() {
   const msg = {
     tr: { tts:"Metinden ses özelliği yakında!", clone:"Ses klonlama yakında!", podcast:"Podcast üretimi yakında!", stt:"Ses→Metin yakında!" },
@@ -223,136 +208,91 @@ function wireMenu() {
     card.querySelector(".card-btn")?.addEventListener("click", handler);
   });
 }
-
-// --- Language button in header ---
 function wireHeaderLang() {
   $("#lang-toggle-main")?.addEventListener("click", toggleLang);
 }
 
-// --- Init ---
+//////////////////////
+// INTRO (zincir: user → cloud)
+//////////////////////
+function goLogin(markSeen=true){
+  if (markSeen && CONFIG.INTRO_SHOW_ONCE) localStorage.setItem(CONFIG.LS_INTRO, "1");
+  const overlay = $("#intro-overlay");
+  const modal   = $("#login-modal");
+  const main    = $("#main-content");
+  hide(overlay); show(modal); modal?.setAttribute("aria-hidden","false"); hide(main);
+  ensureLoginHeading(); // üst başlığı göster, kutu içindeki başlığı gizle
+}
+
+async function playClip(videoEl, src, maxMs){
+  return new Promise(async (resolve)=>{
+    let timer=null, ended=false;
+    const done = ()=>{ if(ended) return; ended=true; clearTimeout(timer); resolve(true); };
+
+    videoEl.src = src + "?cb=" + Date.now();
+    try{
+      videoEl.muted = true; videoEl.playsInline = true;
+      videoEl.load();
+      await videoEl.play();
+    }catch{
+      const once = ()=>{ videoEl.play().catch(()=>{}); document.removeEventListener('click',once,true); };
+      document.addEventListener('click', once, true);
+    }
+    videoEl.onended = done;
+    videoEl.onerror = done;
+    timer = setTimeout(done, maxMs);
+  });
+}
+
+async function runChainedIntro(){
+  const overlay = $("#intro-overlay");
+  const video   = $("#intro-video");
+  const skipBtn = $("#skip-intro");
+  const langBtn = $("#lang-toggle-intro");
+
+  applyIntroTexts();
+
+  if (CONFIG.INTRO_SHOW_ONCE && localStorage.getItem(CONFIG.LS_INTRO) === "1") {
+    goLogin(false); return;
+  }
+
+  const hasUser  = await fileExists(CONFIG.PATH_USER_INTRO);
+  const hasCloud = await fileExists(CONFIG.PATH_CLOUD_INTRO);
+
+  if (!hasUser && !hasCloud) { goLogin(false); return; }
+
+  show(overlay);
+
+  // Skip → anında login
+  skipBtn?.addEventListener("click", (e)=>{ e.preventDefault(); try{ video.pause(); }catch{}; goLogin(true); });
+
+  // Dil butonu
+  langBtn?.addEventListener("click", (e)=>{ e.preventDefault(); toggleLang(); });
+
+  if (hasUser) { await playClip(video, CONFIG.PATH_USER_INTRO, CONFIG.USER_INTRO_MS); }
+  if (hasCloud){ await playClip(video, CONFIG.PATH_CLOUD_INTRO, CONFIG.CLOUD_INTRO_MS); }
+
+  goLogin(true);
+}
+
+//////////////////////
+// INIT
+//////////////////////
 document.addEventListener("DOMContentLoaded", async () => {
   // Açılış dili: EN (ilk kez giren için)
   if (!localStorage.getItem(CONFIG.LS_LANG)) {
     localStorage.setItem(CONFIG.LS_LANG, "en");
     currentLang = "en";
   }
-
-  await runIntro();
-  runLogin();
   applyMainTexts();
   wireHeaderLang();
   wireMenu();
+  runLogin();
+  await runChainedIntro();
 
-  // Sekme gizlenince video pause
+  // Sekme gizlenince intro videoyu durdur
   document.addEventListener("visibilitychange", () => {
     const v = $("#intro-video");
     if (document.hidden && v && !v.paused) v.pause();
   });
 });
-/* ===== SA PATCH: Çift aşamalı intro (append at EOF) ===== */
-(() => {
-  if (window.__SA_CHAINED_INTRO__) return; window.__SA_CHAINED_INTRO__ = true;
-
-  const PATHS = {
-    USER:  'assets/intro.mp4',        // 1. video (senin)
-    CLOUD: 'assets/intro_cloud.mp4'   // 2. video (opsiyonel)
-  };
-  const DUR = { USER_MS: 10000, CLOUD_MS: 7000 }; // süre sınırlayıcı (ms)
-  const LS  = { SEEN: 'introSeen', LANG: 'preferredLang' };
-
-  const $ = (s)=>document.querySelector(s);
-  const hide = (el)=>el && (el.style.display='none');
-  const show = (el)=>el && (el.style.display='');
-  const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
-
-  async function exists(url){
-    try{
-      const r = await fetch(`${url}?cb=${Date.now()}`, { method:'HEAD', cache:'no-store' });
-      const sz = +(r.headers.get('content-length') || 0);
-      return r.ok && sz > 0;
-    }catch{ return false; }
-  }
-
-  function goLogin(markSeen=true){
-    if (markSeen) localStorage.setItem(LS.SEEN,'1');
-    const overlay = $('#intro-overlay');
-    const modal   = $('#login-modal');
-    const main    = $('#main-content');
-    hide(overlay);
-    show(modal); modal?.setAttribute('aria-hidden','false');
-    hide(main);
-  }
-
-  async function playClip(videoEl, src, maxMs){
-    return new Promise(async (resolve)=>{
-      let done=false, timer=null;
-
-      const onEnd = ()=>{ if(done) return; done=true; clearTimeout(timer); resolve(true); };
-      const onErr = ()=>{ if(done) return; done=true; clearTimeout(timer); resolve(false); };
-
-      videoEl.src = `${src}?cb=${Date.now()}`;
-      try{
-        videoEl.muted = true;
-        videoEl.playsInline = true;
-        await videoEl.play();
-      }catch{
-        // otoplay engellenirse ilk tıklamada başlat
-        const once=()=>{ videoEl.play().catch(()=>{}); document.removeEventListener('click',once,true); };
-        document.addEventListener('click',once,true);
-      }
-
-      videoEl.onended = onEnd;
-      videoEl.onerror = onErr;
-
-      // güvenlik için süre sınırı
-      timer = setTimeout(onEnd, maxMs);
-    });
-  }
-
-  async function runChainedIntro(){
-    // 1) Daha önce izlendiyse direkt parola
-    if (localStorage.getItem(LS.SEEN) === '1'){ goLogin(false); return; }
-
-    // 2) Elemanlar
-    const overlay = $('#intro-overlay');
-    const video   = $('#intro-video');
-    const skipBtn = $('#skip-intro');
-    if (!overlay || !video){ goLogin(false); return; }
-
-    show(overlay);
-
-    // Skip: anında parola
-    skipBtn?.addEventListener('click', (e)=>{
-      e.preventDefault();
-      try{ video.pause(); }catch{}
-      goLogin(true);
-    });
-
-    // 3) Kullanıcı videosu var mı?
-    const hasUser  = await exists(PATHS.USER);
-    const hasCloud = await exists(PATHS.CLOUD); // yoksa yazı bekletmesi yapacağız
-
-    if (hasUser){
-      const ok = await playClip(video, PATHS.USER, DUR.USER_MS);
-      // ok olmasa da devam ediyoruz
-    }
-
-    // 4) Cloud aşaması: video varsa oynat, yoksa yazıyı beklet
-    if (hasCloud){
-      await playClip(video, PATHS.CLOUD, DUR.CLOUD_MS);
-    }else{
-      // video yoksa: yazı/animasyon zaten overlay'de görünüyor → sadece beklet
-      await sleep(DUR.CLOUD_MS);
-    }
-
-    // 5) Son: parola ekranı
-    goLogin(true);
-  }
-
-  // Varsayılan dili EN bir kere ayarla; dil butonları mevcut kodunla çalışmaya devam eder
-  document.addEventListener('DOMContentLoaded', ()=>{
-    if (!localStorage.getItem(LS.LANG)) localStorage.setItem(LS.LANG,'en');
-    runChainedIntro();
-  });
-})();
-
