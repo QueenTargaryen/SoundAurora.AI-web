@@ -249,3 +249,110 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (document.hidden && v && !v.paused) v.pause();
   });
 });
+/* ===== SA PATCH: Çift aşamalı intro (append at EOF) ===== */
+(() => {
+  if (window.__SA_CHAINED_INTRO__) return; window.__SA_CHAINED_INTRO__ = true;
+
+  const PATHS = {
+    USER:  'assets/intro.mp4',        // 1. video (senin)
+    CLOUD: 'assets/intro_cloud.mp4'   // 2. video (opsiyonel)
+  };
+  const DUR = { USER_MS: 10000, CLOUD_MS: 7000 }; // süre sınırlayıcı (ms)
+  const LS  = { SEEN: 'introSeen', LANG: 'preferredLang' };
+
+  const $ = (s)=>document.querySelector(s);
+  const hide = (el)=>el && (el.style.display='none');
+  const show = (el)=>el && (el.style.display='');
+  const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+
+  async function exists(url){
+    try{
+      const r = await fetch(`${url}?cb=${Date.now()}`, { method:'HEAD', cache:'no-store' });
+      const sz = +(r.headers.get('content-length') || 0);
+      return r.ok && sz > 0;
+    }catch{ return false; }
+  }
+
+  function goLogin(markSeen=true){
+    if (markSeen) localStorage.setItem(LS.SEEN,'1');
+    const overlay = $('#intro-overlay');
+    const modal   = $('#login-modal');
+    const main    = $('#main-content');
+    hide(overlay);
+    show(modal); modal?.setAttribute('aria-hidden','false');
+    hide(main);
+  }
+
+  async function playClip(videoEl, src, maxMs){
+    return new Promise(async (resolve)=>{
+      let done=false, timer=null;
+
+      const onEnd = ()=>{ if(done) return; done=true; clearTimeout(timer); resolve(true); };
+      const onErr = ()=>{ if(done) return; done=true; clearTimeout(timer); resolve(false); };
+
+      videoEl.src = `${src}?cb=${Date.now()}`;
+      try{
+        videoEl.muted = true;
+        videoEl.playsInline = true;
+        await videoEl.play();
+      }catch{
+        // otoplay engellenirse ilk tıklamada başlat
+        const once=()=>{ videoEl.play().catch(()=>{}); document.removeEventListener('click',once,true); };
+        document.addEventListener('click',once,true);
+      }
+
+      videoEl.onended = onEnd;
+      videoEl.onerror = onErr;
+
+      // güvenlik için süre sınırı
+      timer = setTimeout(onEnd, maxMs);
+    });
+  }
+
+  async function runChainedIntro(){
+    // 1) Daha önce izlendiyse direkt parola
+    if (localStorage.getItem(LS.SEEN) === '1'){ goLogin(false); return; }
+
+    // 2) Elemanlar
+    const overlay = $('#intro-overlay');
+    const video   = $('#intro-video');
+    const skipBtn = $('#skip-intro');
+    if (!overlay || !video){ goLogin(false); return; }
+
+    show(overlay);
+
+    // Skip: anında parola
+    skipBtn?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      try{ video.pause(); }catch{}
+      goLogin(true);
+    });
+
+    // 3) Kullanıcı videosu var mı?
+    const hasUser  = await exists(PATHS.USER);
+    const hasCloud = await exists(PATHS.CLOUD); // yoksa yazı bekletmesi yapacağız
+
+    if (hasUser){
+      const ok = await playClip(video, PATHS.USER, DUR.USER_MS);
+      // ok olmasa da devam ediyoruz
+    }
+
+    // 4) Cloud aşaması: video varsa oynat, yoksa yazıyı beklet
+    if (hasCloud){
+      await playClip(video, PATHS.CLOUD, DUR.CLOUD_MS);
+    }else{
+      // video yoksa: yazı/animasyon zaten overlay'de görünüyor → sadece beklet
+      await sleep(DUR.CLOUD_MS);
+    }
+
+    // 5) Son: parola ekranı
+    goLogin(true);
+  }
+
+  // Varsayılan dili EN bir kere ayarla; dil butonları mevcut kodunla çalışmaya devam eder
+  document.addEventListener('DOMContentLoaded', ()=>{
+    if (!localStorage.getItem(LS.LANG)) localStorage.setItem(LS.LANG,'en');
+    runChainedIntro();
+  });
+})();
+
