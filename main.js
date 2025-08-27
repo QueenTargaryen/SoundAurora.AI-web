@@ -1,10 +1,11 @@
 /* #JS_CONFIG - Paste this at the top of JS file */
 const CONFIG = {
     INTRO_DURATION_MS: 10000,
-    DEMO_PASSWORD: "quynh_demo_001",
+    DEMO_PASSWORD: "Qe00711634",
     INTRO_SHOW_ONCE: true,
     VIDEO_PATH: "assets/intro.mp4"
 };
+
 /* #JS_I18N_DATASETS - Paste this after config */
 const I18N_DATA = {
     tr: {
@@ -13,6 +14,7 @@ const I18N_DATA = {
             tagline: "Yapay zekâ ile hızlı, stüdyo kalitesinde ses.",
             small: "TTS • STT • Ses Klonlama • Podcast",
             skip: "Geç",
+            // butonda karşı dil görünür
             langDisplay: "EN"
         },
         modal: {
@@ -26,427 +28,224 @@ const I18N_DATA = {
             heroTitle: "SoundAurora'ya Hoş Geldiniz",
             heroSubtitle: "Yapay zeka ile ses klonlama ve podcast üretimi",
             menuTitle: "Özellikler",
-            tts: {
-                title: "Metinden Ses",
-                desc: "Metninizi profesyonel ses dosyasına dönüştürün",
-                btn: "Başla"
-            },
-            clone: {
-                title: "Ses Klonlama",
-                desc: "Kendi sesinizi klonlayın ve kullanın",
-                btn: "Başla"
-            },
-            podcast: {
-                title: "Podcast Üret",
-                desc: "Metninizi otomatik podcast'e çevirin",
-                btn: "Başla"
-            },
-            stt: {
-                title: "Ses → Metin",
-                desc: "Ses kayıtlarınızı metne dönüştürün",
-                btn: "Başla"
-            }
+            tts: { title: "Metinden Ses", desc: "Metninizi profesyonel ses dosyasına dönüştürün", btn: "Başla" },
+            clone: { title: "Ses Klonlama", desc: "Kendi sesinizi klonlayın ve kullanın", btn: "Başla" },
+            podcast: { title: "Podcast Üret", desc: "Metninizi otomatik podcast'e çevirin", btn: "Başla" },
+            stt: { title: "Ses → Metin", desc: "Ses kayıtlarınızı metne dönüştürün", btn: "Başla" }
         }
     },
     en: {
         intro: {
             title: "SoundAurora",
-            tagline: "Fast, studio-quality voice by AI.",
+            tagline: "Studio-quality voice, instantly with AI.",
             small: "TTS • STT • Voice Cloning • Podcast",
             skip: "Skip",
+            // butonda karşı dil görünür
             langDisplay: "TR"
         },
         modal: {
             title: "SoundAurora",
-            subtitle: "Enter password to access platform",
+            subtitle: "Enter the password to access the platform",
             placeholder: "Enter password...",
             submit: "Login",
             error: "Wrong password! Please try again."
         },
         menu: {
             heroTitle: "Welcome to SoundAurora",
-            heroSubtitle: "AI-powered voice cloning and podcast generation",
+            heroSubtitle: "Voice cloning & podcast creation with AI",
             menuTitle: "Features",
-            tts: {
-                title: "Text to Speech",
-                desc: "Convert your text to professional audio files",
-                btn: "Start"
-            },
-            clone: {
-                title: "Voice Cloning",
-                desc: "Clone and use your own voice",
-                btn: "Start"
-            },
-            podcast: {
-                title: "Generate Podcast",
-                desc: "Convert your text to automatic podcast",
-                btn: "Start"
-            },
-            stt: {
-                title: "Speech → Text",
-                desc: "Convert your audio recordings to text",
-                btn: "Start"
-            }
+            tts: { title: "Text to Speech", desc: "Turn your text into a pro voice file", btn: "Start" },
+            clone: { title: "Voice Cloning", desc: "Clone and use your own voice", btn: "Start" },
+            podcast: { title: "Generate Podcast", desc: "Turn your script into an automatic podcast", btn: "Start" },
+            stt: { title: "Speech → Text", desc: "Transcribe your recordings into text", btn: "Start" }
         }
     }
 };
 
 /* #JS_STATE - Paste this after i18n data */
-let currentLang = 'tr';
-let introShown = false;
+// Varsayılan dili EN yapıyoruz; kayıtlı tercih varsa onu kullanıyoruz.
+let currentLang = (localStorage.getItem('preferredLang') || 'en');
 let introTimer = null;
 
 const state = {
     introCompleted: false,
     loginCompleted: false,
-    currentLanguage: 'tr'
+    currentLanguage: currentLang
 };
-/* #JS_INTRO_FLOW - Paste this after state */
-function initIntro() {
-    const overlay = document.getElementById('intro-overlay');
-    const video = document.getElementById('intro-video');
-    const skipBtn = document.getElementById('skip-intro');
-    const langToggle = document.getElementById('lang-toggle-intro');
-    // Check if intro should be shown
-    if (CONFIG.INTRO_SHOW_ONCE && localStorage.getItem('introSeen')) {
-        showLoginModal();
-        return;
-    }
-    
-    // Show intro
-    overlay.style.display = 'flex';
-    // Try to load and play video
-    if (video.canPlayType('video/mp4')) {
-        video.addEventListener('loadeddata', () => {
-            video.play().catch(() => {
-                // Video failed to play, continue with timer
-                console.log('Video autoplay failed, showing poster');
-            });
-        });
-        
-        video.addEventListener('ended', () => {
-            showLoginModal();
-        });
-        video.addEventListener('error', () => {
-            console.log('Video failed to load, showing poster');
-        });
-    }
-    
-    // Set timer to show login modal after duration
-    introTimer = setTimeout(() => {
-        if (!state.loginCompleted) {
-            showLoginModal();
-        }
-    }, CONFIG.INTRO_DURATION_MS);
-    // Skip button handler
-    skipBtn.addEventListener('click', () => {
-        clearTimeout(introTimer);
-        showLoginModal();
-    });
-    // Language toggle for intro
-    langToggle.addEventListener('click', () => {
-        toggleLanguage();
-        updateIntroText();
-    });
-    // Initialize intro text
-    updateIntroText();
+
+/* Yardımcılar */
+const $ = (sel) => document.querySelector(sel);
+function setText(id, text){ const el = document.getElementById(id); if (el) el.textContent = text; }
+function setPlaceholder(id, text){ const el = document.getElementById(id); if (el) el.placeholder = text; }
+function show(el){ if (el) el.style.display = ''; }
+function hide(el){ if (el) el.style.display = 'none'; }
+
+/* Intro dosyası var mı? */
+async function hasIntroFile() {
+    try {
+        const r = await fetch(CONFIG.VIDEO_PATH, { method: 'HEAD', cache: 'no-store' });
+        const size = +(r.headers.get('content-length') || 0);
+        return r.ok && size > 0;
+    } catch { return false; }
 }
 
-function showLoginModal() {
-    if (state.loginCompleted) return;
-    
-    clearTimeout(introTimer);
-    // Mark intro as seen
-    if (CONFIG.INTRO_SHOW_ONCE) {
-        localStorage.setItem('introSeen', 'true');
+/* #JS_INTRO_FLOW - Paste this after state */
+async function initIntro() {
+    const overlay   = $('#intro-overlay');
+    const video     = $('#intro-video');
+    const skipBtn   = $('#skip-intro');
+    const langBtn   = $('#lang-toggle-intro');
+
+    // Dil metinlerini uygula
+    updateIntroText();
+
+    // Videonun varlığını kontrol et
+    const videoExists = await hasIntroFile();
+
+    // Eğer "bir kez göster" açıksa ve daha önce gerçekten gösterildiyse atla
+    const introSeen = localStorage.getItem('introSeen') === '1';
+
+    if (!videoExists) {
+        // Video yoksa intro’yu hiç göstermeden modala geç
+        showLoginModal(false); // seen=false (kayıt tutma)
+        return;
     }
-    
-    // Hide intro with fade
-    const overlay = document.getElementById('intro-overlay');
-    const modal = document.getElementById('login-modal');
-    
-    overlay.classList.add('fade-out');
-    
+    if (CONFIG.INTRO_SHOW_ONCE && introSeen) {
+        showLoginModal(false); // tekrar intro göstermeyelim
+        return;
+    }
+
+    // Intro görünür
+    overlay.style.display = 'flex';
+
+    // Video autoplay
+    if (video && video.canPlayType('video/mp4')) {
+        video.muted = true;
+        video.playsInline = true;
+        video.addEventListener('canplay', () => { video.play().catch(()=>{}); }, { once:true });
+        video.addEventListener('ended',  () => showLoginModal(true), { once:true }); // seen=true (gerçekten izlendi)
+        video.addEventListener('error',  () => showLoginModal(false), { once:true });
+    }
+
+    // Süre dolunca yine modala geç (failsafe)
+    introTimer = setTimeout(() => {
+        if (!state.loginCompleted) showLoginModal(videoExists); // video varsa seen=true say
+    }, CONFIG.INTRO_DURATION_MS);
+
+    // Skip
+    if (skipBtn) {
+        skipBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            try { video && video.pause(); } catch {}
+            showLoginModal(true); // kullanıcı geçti → seen=true
+        });
+    }
+
+    // Dil değiştir
+    if (langBtn) {
+        langBtn.addEventListener('click', () => {
+            toggleLanguage();
+            updateIntroText();
+        });
+    }
+}
+
+function showLoginModal(markSeen) {
+    if (state.loginCompleted) return;
+    clearTimeout(introTimer);
+
+    // Sadece video gerçekten varsa veya kullanıcı "Geç" dediyse seen işaretle
+    if (CONFIG.INTRO_SHOW_ONCE && markSeen) {
+        localStorage.setItem('introSeen', '1');
+    }
+
+    const overlay = $('#intro-overlay');
+    const modal   = $('#login-modal');
+
+    overlay?.classList.add('fade-out');
     setTimeout(() => {
-        overlay.style.display = 'none';
-        modal.classList.add('show');
-        modal.setAttribute('aria-hidden', 'false');
-        
-        // Focus password input
-        const passwordInput = document.getElementById('password-input');
-        setTimeout(() => passwordInput.focus(), 100);
+        hide(overlay);
+        modal?.classList.add('show');
+        modal?.setAttribute('aria-hidden', 'false');
+        const inp = $('#password-input');
+        setTimeout(() => inp && inp.focus(), 100);
     }, 800);
+
     state.introCompleted = true;
 }
 
 function updateIntroText() {
-    const data = I18N_DATA[currentLang].intro;
-    
-    document.getElementById('intro-title').textContent = data.title;
-    document.getElementById('intro-tagline').textContent = data.tagline;
-    document.getElementById('intro-small').textContent = data.small;
-    document.getElementById('skip-text').textContent = data.skip;
-    document.getElementById('lang-display').textContent = data.langDisplay;
+    const d = I18N_DATA[currentLang].intro;
+    setText('intro-title',  d.title);
+    setText('intro-tagline',d.tagline);
+    setText('intro-small',  d.small);
+    setText('skip-text',    d.skip);
+    const disp = $('#lang-display'); if (disp) disp.textContent = d.langDisplay;
+    document.documentElement.lang = currentLang;
 }
 
 /* #JS_LOGIN_FLOW - Paste this after intro flow */
 function initLoginForm() {
-    const form = document.getElementById('login-form');
-    const passwordInput = document.getElementById('password-input');
-    const errorMessage = document.getElementById('error-message');
-    const modal = document.getElementById('login-modal');
-    
-    // Update modal text
+    const form = $('#login-form');
+    const input = $('#password-input');
+    const err = $('#error-message');
+    const modal = $('#login-modal');
+
     updateModalText();
-    form.addEventListener('submit', (e) => {
+
+    form?.addEventListener('submit', (e) => {
         e.preventDefault();
-        
-        const password = passwordInput.value.trim();
-        
-        if (password === CONFIG.DEMO_PASSWORD) {
-            // Success
-            errorMessage.classList.remove('show');
-            
-            // Hide modal and show main content
-            modal.classList.remove('show');
-            modal.setAttribute('aria-hidden', 'true');
-            
+        const pass = (input?.value || '').trim();
+        if (pass === CONFIG.DEMO_PASSWORD) {
+            err?.classList.remove('show');
+            modal?.classList.remove('show');
+            modal?.setAttribute('aria-hidden', 'true');
             setTimeout(() => {
-                modal.style.display = 'none';
+                modal && (modal.style.display = 'none');
                 showMainContent();
             }, 400);
-            
             state.loginCompleted = true;
         } else {
-            // Error
-            errorMessage.textContent = I18N_DATA[currentLang].modal.error;
-            errorMessage.classList.add('show');
-            
-            // Shake animation
-            passwordInput.style.animation = 'shake 0.5s';
-            setTimeout(() => {
-                passwordInput.style.animation = '';
-                passwordInput.select();
-            }, 500);
+            err && (err.textContent = I18N_DATA[currentLang].modal.error);
+            err?.classList.add('show');
+            if (input) {
+                input.style.animation = 'shake 0.5s';
+                setTimeout(() => { input.style.animation = ''; input.select(); }, 500);
+            }
         }
     });
-    
-    // Clear error on input
-    passwordInput.addEventListener('input', () => {
-        errorMessage.classList.remove('show');
-    });
+
+    input?.addEventListener('input', () => err?.classList.remove('show'));
 }
 
 function updateModalText() {
-    const data = I18N_DATA[currentLang].modal;
-    
-    document.getElementById('modal-title').textContent = data.title;
-    document.getElementById('modal-subtitle').textContent = data.subtitle;
-    document.getElementById('password-input').placeholder = data.placeholder;
-    document.querySelector('.btn-text').textContent = data.submit;
+    const d = I18N_DATA[currentLang].modal;
+    setText('modal-title', d.title);
+    setText('modal-subtitle', d.subtitle);
+    setPlaceholder('password-input', d.placeholder);
+    const btnText = document.querySelector('.btn-text');
+    if (btnText) btnText.textContent = d.submit;
 }
 
 function showMainContent() {
-    const mainContent = document.getElementById('main-content');
-    mainContent.style.display = 'block';
-    // Update all text content
+    const main = $('#main-content');
+    if (main) {
+        main.style.display = 'block';
+        setTimeout(() => { main.style.opacity = '1'; main.style.transform = 'translateY(0)'; }, 100);
+    }
     updateMenuText();
-    
-    // Initialize main language toggle
-    const langToggleMain = document.getElementById('lang-toggle-main');
-    langToggleMain.addEventListener('click', () => {
+
+    const langToggleMain = $('#lang-toggle-main');
+    langToggleMain?.addEventListener('click', () => {
         toggleLanguage();
         updateMenuText();
-        // Update modal text if still visible
-        if (!document.getElementById('login-modal').style.display !== 'none') {
-            updateModalText();
-        }
+        // modal açıksa onu da güncelle
+        const modalVisible = ($('#login-modal')?.style.display || '') !== 'none';
+        if (modalVisible) updateModalText();
     });
-    // Add entrance animation
-    setTimeout(() => {
-        mainContent.style.opacity = '1';
-        mainContent.style.transform = 'translateY(0)';
-    }, 100);
 }
 
 /* #JS_I18N_RENDER - Paste this after login flow */
 function updateMenuText() {
-    const data = I18N_DATA[currentLang].menu;
-    // Update hero section
-    document.getElementById('hero-title').textContent = data.heroTitle;
-    document.getElementById('hero-subtitle').textContent = data.heroSubtitle;
-    document.getElementById('menu-title').textContent = data.menuTitle;
-    // Update menu cards
-    document.getElementById('tts-title').textContent = data.tts.title;
-    document.getElementById('tts-desc').textContent = data.tts.desc;
-    document.getElementById('tts-btn').textContent = data.tts.btn;
-    
-    document.getElementById('clone-title').textContent = data.clone.title;
-    document.getElementById('clone-desc').textContent = data.clone.desc;
-    document.getElementById('clone-btn').textContent = data.clone.btn;
-    
-    document.getElementById('podcast-title').textContent = data.podcast.title;
-    document.getElementById('podcast-desc').textContent = data.podcast.desc;
-    document.getElementById('podcast-btn').textContent = data.podcast.btn;
-    
-    document.getElementById('stt-title').textContent = data.stt.title;
-    document.getElementById('stt-desc').textContent = data.stt.desc;
-    document.getElementById('stt-btn').textContent = data.stt.btn;
-    
-    // Update language display
-    const langDisplay = document.getElementById('lang-display-main');
-    if (langDisplay) {
-        langDisplay.textContent = currentLang === 'tr' ? 'EN' : 'TR';
-    }
-}
-
-/* #JS_I18N_TOGGLE - Paste this after i18n render */
-function toggleLanguage() {
-    currentLang = currentLang === 'tr' ? 'en' : 'tr';
-    state.currentLanguage = currentLang;
-    
-    // Update HTML lang attribute
-    document.documentElement.lang = currentLang;
-    // Save language preference
-    localStorage.setItem('preferredLang', currentLang);
-}
-
-function loadLanguagePreference() {
-    const savedLang = localStorage.getItem('preferredLang');
-    if (savedLang && I18N_DATA[savedLang]) {
-        currentLang = savedLang;
-        state.currentLanguage = savedLang;
-        document.documentElement.lang = currentLang;
-    }
-}
-
-/* #JS_MENU_PLACEHOLDERS - Paste this after language toggle */
-function initMenuHandlers() {
-    // Add click handlers for menu cards
-    const menuCards = document.querySelectorAll('.menu-card');
-    menuCards.forEach(card => {
-        const feature = card.dataset.feature;
-        const btn = card.querySelector('.card-btn');
-        
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            handleFeatureClick(feature);
-        });
-        
-        card.addEventListener('click', () => {
-            handleFeatureClick(feature);
-        });
-        
-        // Keyboard support
-        card.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleFeatureClick(feature);
-            }
-        });
-    });
-}
-
-function handleFeatureClick(feature) {
-    // Placeholder functionality
-    const messages = {
-        tr: {
-            tts: "Metinden ses özelliği yakında gelecek!",
-            clone: "Ses klonlama özelliği yakında gelecek!",
-            podcast: "Podcast üretimi özelliği yakında gelecek!",
-            stt: "Ses → metin özelliği yakında gelecek!"
-        },
-        en: {
-            tts: "Text-to-speech feature coming soon!",
-            clone: "Voice cloning feature coming soon!",
-            podcast: "Podcast generation feature coming soon!",
-            stt: "Speech-to-text feature coming soon!"
-        }
-    };
-    
-    const message = messages[currentLang][feature] || "Feature coming soon!";
-    // Create and show temporary notification
-    showNotification(message);
-}
-
-function showNotification(message) {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, var(--gold-primary), var(--gold-secondary));
-        color: var(--primary-black);
-        padding: 1rem 2rem;
-        border-radius: 12px;
-        font-weight: 600;
-        z-index: 3000;
-        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    `;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    // Animate in
-    setTimeout(() => {
-        notification.style.opacity = '1';
-    }, 10);
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
-}
-
-// Add shake animation to CSS (inject via JS)
-function addShakeAnimation() {
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// Initialize everything when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Load language preference first
-    loadLanguagePreference();
-    
-    // Add animations
-    addShakeAnimation();
-    
-    // Initialize components
-    initIntro();
-    initLoginForm();
-    
-    // Initialize menu handlers when main content is shown
-    setTimeout(() => {
-        if (state.loginCompleted) {
-            initMenuHandlers();
-        }
-    }, 1000);
-    
-    // Fallback: if no intro is shown within 1 second, show login
-    setTimeout(() => {
-        if (!state.introCompleted && !state.loginCompleted) {
-            showLoginModal();
-        }
-    }, 1000);
-});
-// Handle page visibility changes
-document.addEventListener('visibilitychange', () => {
-    const video = document.getElementById('intro-video');
-    if (document.hidden && video && !video.paused) {
-        video.pause();
-    }
-});
+    const d = I18N_DATA[currentLang].menu;
+    setText('hero-ti
