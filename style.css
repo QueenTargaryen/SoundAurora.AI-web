@@ -520,15 +520,31 @@ body {
 
 @media (prefers-color-scheme: light) {
     /* Keep dark theme always */
+}
 
+/* --- Login üstü başlık bloğu --- */
+.login-heading{
+  text-align:center;
+  margin-bottom:1.5rem;
 }
-/* --- Login üstü başlık bloğu (opsiyonel, JS zaten enjekte ediyor) --- */
-.login-heading{ text-align:center; margin-bottom:1.5rem; }
 .login-heading .intro-title{
-  font-size:clamp(28px,4vw,48px); font-weight:800;
+  font-size:clamp(28px,4vw,48px);
+  font-weight:800;
   background:linear-gradient(135deg,var(--gold-primary),var(--gold-secondary));
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  text-shadow:0 0 24px rgba(212,175,55,.25); margin:0 0 .25rem 0;
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 0 24px rgba(212,175,55,.25);
+  margin:0 0 .25rem 0;
 }
-.login-heading .intro-tagline{ color:var(--text-secondary,#c9c9c9); margin:0 0 .25rem 0; }
-.login-heading .intro-small{ color:var(--gold-secondary,#d4af37); letter-spacing:.3px; margin:0; font-size:.95rem; opacity:.9; }
+.login-heading .intro-tagline{
+  color:var(--text-secondary,#c9c9c9);
+  margin:0 0 .25rem 0;
+}
+.login-heading .intro-small{
+  color:var(--gold-secondary,#d4af37);
+  letter-spacing:.3px;
+  margin:0;
+  font-size:.95rem;
+  opacity:.9;
+}
