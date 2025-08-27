@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SoundAurora - AI Voice Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Professional AI Voice Platform - TTS, STT, Voice Cloning">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">SoundAurora</div>
+        <button class="lang-toggle" id="langToggle">TR</button>
+    </nav>
+
+    <!-- Intro Video -->
+    <div class="intro-overlay" id="introOverlay">
+        <div class="intro-content">
+            <h1 class="intro-title">SoundAurora</h1>
+            <p class="intro-tagline" id="introTagline">Yapay zekâ ile stüdyo kalitesinde ses</p>
+            <p class="intro-subtitle" id="introSubtitle">TTS • STT • Voice Cloning • Podcast</p>
+            <button class="skip-btn" id="skipBtn">Geç</button>
+        </div>
+        <video class="intro-video" muted autoplay loop>
+            <source src="assets/intro.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>SoundAurora</h2>
+                <p id="loginTagline">Yapay zekâ ile stüdyo kalitesinde hız</p>
+                <p id="loginSubtitle">TTS • STT • Ses Klonlama • Podcast</p>
+            </div>
+            <div class="login-body">
+                <h3 id="loginTitle">Platforma Giriş</h3>
+                <p id="loginDesc">Platforma erişmek için şifre girin</p>
+                <form id="loginForm">
+                    <input 
+                        type="password" 
+                        id="passwordInput" 
+                        placeholder="Şifreyi girin..."
+                        required
+                    >
+                    <button type="submit" id="loginBtn">Giriş</button>
+                </form>
+                <div class="error-msg" id="errorMsg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <section class="hero">
+            <div class="container">
+                <h1 id="heroTitle">SoundAurora'ya Hoş Geldiniz</h1>
+                <p id="heroDesc">Yapay zeka ile ses klonlama ve podcast platformu</p>
+                
+                <div class="sound-waves">
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                    <div class="wave"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h2 id="featuresTitle">Özellikler</h2>
+                <div class="features-grid">
+                    
+                    <!-- TTS Feature -->
+                    <div class="feature-card" data-feature="tts">
+                        <div class="feature-icon">🎤</div>
+                        <h3 id="ttsTitle">Metinden Ses (TTS)</h3>
+                        <p id="ttsDesc">Metninizi profesyonel ses dosyasına dönüştürün</p>
+                        <button class="feature-btn" id="ttsBtn">Başla</button>
+                    </div>
+
+                    <!-- STT Feature -->
+                    <div class="feature-card" data-feature="stt">
+                        <div class="feature-icon">📝</div>
+                        <h3 id="sttTitle">Ses → Metin (STT)</h3>
+                        <p id="sttDesc">Ses kayıtlarınızı metne dönüştürün</p>
+                        <button class="feature-btn" id="sttBtn">Başla</button>
+                    </div>
+
+                    <!-- Voice Cloning -->
+                    <div class="feature-card" data-feature="clone">
+                        <div class="feature-icon">🎭</div>
+                        <h3 id="cloneTitle">Ses Klonlama</h3>
+                        <p id="cloneDesc">Kendi sesinizi klonlayın ve kullanın</p>
+                        <button class="feature-btn" id="cloneBtn">Başla</button>
+                    </div>
+
+                    <!-- Podcast -->
+                    <div class="feature-card" data-feature="podcast">
+                        <div class="feature-icon">🎧</div>
+                        <h3 id="podcastTitle">Podcast Üret</h3>
+                        <p id="podcastDesc">Metninizi otomatik podcast'e çevirin</p>
+                        <button class="feature-btn" id="podcastBtn">Başla</button>
+                    </div>
+
+                    <!-- AI Book -->
+                    <div class="feature-card" data-feature="aibook">
+                        <div class="feature-icon">📚</div>
+                        <h3 id="aibookTitle">AI Book</h3>
+                        <p id="aibookDesc">Uzun makale ve bölümleri dinleyin</p>
+                        <button class="feature-btn" id="aibookBtn">Başla</button>
+                    </div>
+
+                    <!-- Coming Soon -->
+                    <div class="feature-card coming-soon" data-feature="soon">
+                        <div class="feature-icon">✨</div>
+                        <h3 id="soonTitle">Çok Yakında</h3>
+                        <p id="soonDesc">Yeni yaratıcı ses araçları yolda</p>
+                        <button class="feature-btn" id="soonBtn" disabled>Yakında</button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="main.js"></script>
+</body>
+</html>
