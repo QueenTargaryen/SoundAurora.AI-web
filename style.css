@@ -16,12 +16,17 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+html, body {
+    height: 100%;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     background: var(--primary-black);
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
+    padding-top: 64px; /* #3: Navbar height */
 }
 
 .container {
@@ -90,6 +95,26 @@ body {
     -webkit-text-fill-color: transparent;
     margin-bottom: 1rem;
     text-shadow: 0 0 30px var(--accent-glow);
+    /* #1: Add animations */
+    transform: translateY(100px);
+    opacity: 0;
+    animation: floatUp 1.2s ease forwards, pulseGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes floatUp {
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        text-shadow: 0 0 10px var(--accent-glow);
+    }
+    50% {
+        text-shadow: 0 0 30px var(--gold-primary);
+    }
 }
 
 .intro-tagline {
@@ -178,20 +203,54 @@ body {
     opacity: 1;
 }
 
+/* #2: Login card styles */
+.modal-content-wrapper {
+    width: min(560px, 92vw);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
+    position: relative;
+    border: 1px solid var(--gold-primary);
+    box-shadow: 0 0 50px var(--accent-glow);
+}
+
+.login-header-band {
+    background: linear-gradient(135deg, var(--secondary-black), var(--primary-black));
+    padding: 2rem;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    text-align: center;
+}
+
+.login-header-title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    background: linear-gradient(135deg, var(--gold-primary), var(--gold-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.login-header-tagline {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.login-header-small {
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    color: var(--gold-secondary);
+    opacity: 0.8;
+}
+
 .modal-content {
     background: linear-gradient(135deg, var(--secondary-black), var(--primary-black));
     padding: 3rem;
-    border-radius: 20px;
-    border: 2px solid var(--gold-primary);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 50px var(--accent-glow);
     text-align: center;
-    max-width: 400px;
-    width: 90%;
     position: relative;
 }
 
 .modal-content h2 {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 4vw, 2.5rem);
     background: linear-gradient(135deg, var(--gold-primary), var(--gold-secondary));
     background-clip: text;
     -webkit-background-clip: text;
@@ -203,7 +262,7 @@ body {
 .modal-content p {
     color: var(--text-secondary);
     margin-bottom: 2rem;
-    font-size: 1.1rem;
+    font-size: clamp(1rem, 2.5vw, 1.1rem);
 }
 
 .login-form {
@@ -238,7 +297,7 @@ body {
 }
 
 .submit-btn {
-    background: linear-gradient(135deg, var(--gold-primary), var(--gold-secondary));
+    background: var(--gold-primary);
     border: none;
     padding: 1rem 1.5rem;
     border-radius: 12px;
@@ -251,9 +310,14 @@ body {
 
 .submit-btn:hover,
 .submit-btn:focus {
+    background: linear-gradient(135deg, var(--gold-secondary), var(--gold-primary));
     transform: translateY(-2px);
     box-shadow: 0 8px 25px var(--accent-glow);
     outline: none;
+}
+
+.submit-btn:focus {
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.35);
 }
 
 .error-message {
@@ -328,19 +392,27 @@ body {
 
 /* #STYLES_MENU - Paste this after wave styles */
 .main-content {
-    min-height: 100vh;
+    min-height: calc(100vh - 64px); /* Subtract header height */
     background: linear-gradient(135deg, var(--primary-black) 0%, var(--secondary-black) 100%);
 }
 
 .header {
-    padding: 2rem 0;
+    position: fixed; /* #3: Sticky navbar */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 1rem 0;
     border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
 }
 
 .header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    height: 40px; /* #3: Navbar height */
 }
 
 .logo h1 {
@@ -435,7 +507,7 @@ body {
 }
 
 .card-btn {
-    background: linear-gradient(135deg, var(--gold-primary), var(--gold-secondary));
+    background: var(--gold-primary);
     border: none;
     padding: 0.75rem 2rem;
     border-radius: 12px;
@@ -449,9 +521,27 @@ body {
 
 .card-btn:hover,
 .card-btn:focus {
+    background: linear-gradient(135deg, var(--gold-secondary), var(--gold-primary));
     transform: translateY(-2px);
     box-shadow: 0 8px 25px var(--accent-glow);
     outline: none;
+}
+
+.card-btn:focus {
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.35);
+}
+
+.coming-soon-card .card-btn {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.coming-soon-card .card-btn:hover,
+.coming-soon-card .card-btn:focus {
+    transform: none;
+    box-shadow: none;
+    background: var(--text-secondary);
 }
 
 /* Responsive Design */
@@ -520,31 +610,4 @@ body {
 
 @media (prefers-color-scheme: light) {
     /* Keep dark theme always */
-}
-
-/* --- Login üstü başlık bloğu --- */
-.login-heading{
-  text-align:center;
-  margin-bottom:1.5rem;
-}
-.login-heading .intro-title{
-  font-size:clamp(28px,4vw,48px);
-  font-weight:800;
-  background:linear-gradient(135deg,var(--gold-primary),var(--gold-secondary));
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-  text-shadow:0 0 24px rgba(212,175,55,.25);
-  margin:0 0 .25rem 0;
-}
-.login-heading .intro-tagline{
-  color:var(--text-secondary,#c9c9c9);
-  margin:0 0 .25rem 0;
-}
-.login-heading .intro-small{
-  color:var(--gold-secondary,#d4af37);
-  letter-spacing:.3px;
-  margin:0;
-  font-size:.95rem;
-  opacity:.9;
 }
