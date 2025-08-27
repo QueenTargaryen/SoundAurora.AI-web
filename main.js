@@ -249,3 +249,4 @@ function showMainContent() {
 function updateMenuText() {
     const d = I18N_DATA[currentLang].menu;
     setText('hero-ti
+
