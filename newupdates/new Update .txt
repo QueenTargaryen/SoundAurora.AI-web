@@ -1,16 +1,4 @@
-1- Adjust the intro.MP4 video so that it does not appear oversized in the application. 
-On desktop (PC), keep the video in a square format to maintain the visual quality. 
-On mobile devices, display the video in vertical (portrait) format. 
-The "Skip" button must always remain visible in the bottom-right corner on both desktop and mobile. 
-Currently, the Skip button is not visible on mobile — fix this so it appears properly.
-
-2- Change all texts in the password input field to English. 
-Any text currently displayed in Turkish should be replaced with English. 
-For example, instead of "Şifre giriniz" it should say "Enter your password".
-
-3- After logging in from the password screen, the main menu does not switch to Turkish when the TR option is selected. 
-Fix this so that when TR is selected, all menu items, headings, and buttons are displayed fully in Turkish.
-
-4- The TTS button in the main menu looks different from the other buttons. 
-Make it the same color, size, and alignment as all the other buttons. 
-All buttons must be equal, consistent, and properly aligned.
+Make the intro.MP4 video fully responsive across devices. 
+On desktop (PC), the video must appear in a square format, centered, aligned properly, and visually sharp. 
+On mobile devices (especially Samsung Android phones), the video must display correctly in vertical (portrait) format. 
+The same video file will be used for both; adjustments should be done only via CSS/HTML.

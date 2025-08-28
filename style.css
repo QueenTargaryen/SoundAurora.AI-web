@@ -96,7 +96,7 @@ body {
     pointer-events: none;
 }
 
-/* FIXED: Video stays in background */
+/* FIXED: Fully responsive video background */
 .intro-video {
     position: absolute;
     top: 50%;
@@ -104,22 +104,76 @@ body {
     transform: translate(-50%, -50%);
     z-index: 1; /* Low z-index - background */
     opacity: 0.8;
+    max-width: none;
+    max-height: none;
 }
 
-/* Desktop: Square video format */
-@media (min-width: 769px) {
+/* Desktop: Square centered video format */
+@media (min-width: 769px) and (orientation: landscape) {
     .intro-video {
-        width: min(100vh, 100vw);
-        height: min(100vh, 100vw);
+        width: min(90vh, 90vw);
+        height: min(90vh, 90vw);
         object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
     }
 }
 
-/* Mobile: Portrait video format */
-@media (max-width: 768px) {
+/* Desktop Portrait (less common) */
+@media (min-width: 769px) and (orientation: portrait) {
+    .intro-video {
+        width: 90vw;
+        height: 60vh;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+}
+
+/* Tablet landscape */
+@media (min-width: 481px) and (max-width: 768px) and (orientation: landscape) {
+    .intro-video {
+        width: 80vh;
+        height: 80vh;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+}
+
+/* Mobile and Tablet Portrait: Full screen vertical format */
+@media (max-width: 768px) and (orientation: portrait) {
     .intro-video {
         width: 100vw;
         height: 100vh;
+        object-fit: cover;
+        border-radius: 0;
+    }
+}
+
+/* Samsung Galaxy and similar Android phones - specific optimizations */
+@media (max-width: 480px) and (orientation: portrait) {
+    .intro-video {
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        object-position: center center;
+    }
+}
+
+/* Ultra-wide screens (21:9, 32:9) */
+@media (min-aspect-ratio: 21/9) {
+    .intro-video {
+        width: 60vh;
+        height: 60vh;
+        object-fit: cover;
+        border-radius: 15px;
+    }
+}
+
+/* Very tall screens */
+@media (max-aspect-ratio: 9/16) {
+    .intro-video {
+        width: 100vw;
+        height: 56.25vw; /* 16:9 aspect ratio */
         object-fit: cover;
     }
 }
