@@ -8,11 +8,11 @@
 :root {
     --primary-black: #0a0a0a;
     --secondary-black: #1a1a1a;
-    --gold-primary: #d4af37;
-    --gold-secondary: #f4e4a6;
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFD700;
     --text-primary: #ffffff;
     --text-secondary: #cccccc;
-    --glow: rgba(212, 175, 55, 0.3);
+    --glow: rgba(255, 215, 0, 0.3);
     --neon-blue: #00f3ff;
     --neon-purple: #9d00ff;
     --neon-pink: #ff0090;
@@ -59,9 +59,9 @@ body {
 }
 
 .lang-toggle {
-    background: rgba(212, 175, 55, 0.1);
-    border: 2px solid var(--gold-primary);
-    color: var(--gold-primary);
+    background: rgba(255, 215, 0, 0.1);
+    border: 2px solid #FFD700;
+    color: #FFD700;
     padding: 8px 16px;
     border-radius: 8px;
     cursor: pointer;
@@ -70,9 +70,9 @@ body {
 }
 
 .lang-toggle:hover {
-    background: var(--gold-primary);
+    background: #FFD700;
     color: var(--primary-black);
-    box-shadow: 0 0 20px var(--glow);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
 }
 
 /* FIXED: Intro Overlay - Video and animation layers */
@@ -145,23 +145,25 @@ body {
 .skip-btn {
     position: absolute;
     bottom: 30px;
-    right: 30px;
+    left: 50%;
+    transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.8);
-    border: 2px solid var(--gold-primary);
-    color: var(--gold-primary);
+    border: 2px solid #FFD700;
+    color: #FFD700;
     padding: 12px 24px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
     z-index: 15;
+    display: none;
 }
 
 .skip-btn:hover {
-    background: var(--gold-primary);
+    background: #FFD700;
     color: var(--primary-black);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px var(--glow);
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
 }
 
 /* Animations */
@@ -221,19 +223,49 @@ body {
 
 .login-card {
     background: var(--secondary-black);
-    border: 2px solid var(--gold-primary);
+    border: 3px solid transparent;
     border-radius: 20px;
     overflow: hidden;
-    width: min(500px, 90vw);
-    box-shadow: 0 0 50px var(--glow);
+    width: min(450px, 85vw);
+    position: relative;
     animation: modalSlideIn 0.5s ease-out;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+}
+
+.login-card::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, 
+        #FFD700, 
+        transparent, 
+        #FFD700, 
+        transparent, 
+        #FFD700
+    );
+    background-size: 300% 300%;
+    border-radius: 20px;
+    z-index: -1;
+    animation: movingBorder 3s linear infinite;
+}
+
+@keyframes movingBorder {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 300% 300%;
+    }
 }
 
 .login-header {
     background: linear-gradient(135deg, var(--secondary-black), var(--primary-black));
     padding: 30px;
     text-align: center;
-    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 .login-header h2 {
@@ -486,8 +518,8 @@ body {
 }
 
 .feature-card {
-    background: rgba(212, 175, 55, 0.05);
-    border: 2px solid rgba(212, 175, 55, 0.2);
+    background: rgba(255, 215, 0, 0.05);
+    border: 2px solid rgba(255, 215, 0, 0.2);
     border-radius: 20px;
     padding: 40px 30px;
     text-align: center;
@@ -497,9 +529,9 @@ body {
 
 .feature-card:hover {
     transform: translateY(-10px);
-    border-color: var(--gold-primary);
-    box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2);
-    background: rgba(212, 175, 55, 0.1);
+    border-color: #FFD700;
+    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.2);
+    background: rgba(255, 215, 0, 0.1);
 }
 
 .feature-icon {

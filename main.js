@@ -2,23 +2,23 @@
 const CONFIG = {
     PASSWORD: "quynh_demo_001",
     INTRO_DURATION: 22000, // 22 seconds
-    DEFAULT_LANG: "tr"
+    DEFAULT_LANG: "en"
 };
 
 // Language Data
 const LANG_DATA = {
     tr: {
         intro: {
-            tagline: "Yapay zekâ ile stüdyo kalitesinde ses",
-            subtitle: "TTS • STT • Ses Klonlama • Podcast",
+            tagline: "Profesyonel stüdyo sesi artık yapay zeka gücüyle sizin elinizde.",
+            subtitle: "TTS • STT • Ses Klonlama • Podcast • E-Kitap • VPS",
             skip: "Geç"
         },
         login: {
-            tagline: "Yapay zekâ ile stüdyo kalitesinde hız",
-            subtitle: "TTS • STT • Ses Klonlama • Podcast",
+            tagline: "Profesyonel stüdyo sesi artık yapay zeka gücüyle sizin elinizde.",
+            subtitle: "TTS • STT • Ses Klonlama • Podcast • E-Kitap • VPS",
             title: "Platforma Giriş",
             desc: "Platforma erişmek için şifre girin",
-            placeholder: "Şifreyi girin...",
+            placeholder: "Şifrenizi girin...", 
             button: "Giriş",
             error: "Hatalı şifre! Lütfen tekrar deneyin."
         },
@@ -60,8 +60,8 @@ const LANG_DATA = {
     },
     en: {
         intro: {
-            tagline: "Fast, studio-quality voice by AI",
-            subtitle: "TTS • STT • Voice Cloning • Podcast",
+            tagline: "Professional studio voice, now in your hands with AI power.",
+            subtitle: "TTS • STT • Voice Clone • Podcast • E-Book • VPS",
             skip: "Skip"
         },
         login: {
@@ -224,8 +224,20 @@ function initIntro() {
         showLogin();
     }, CONFIG.INTRO_DURATION);
     
+    // Show skip button after 7 seconds
+    setTimeout(() => {
+        if (skipBtn) {
+            skipBtn.style.display = 'block';
+            skipBtn.style.opacity = '0';
+            setTimeout(() => {
+                skipBtn.style.opacity = '1';
+            }, 50);
+        }
+    }, 7000); // 7 seconds
+    
     // Skip button handler
     if (skipBtn) {
+        skipBtn.style.display = 'none'; // Initially hidden
         skipBtn.addEventListener('click', () => {
             clearTimeout(introTimer);
             showLogin();
