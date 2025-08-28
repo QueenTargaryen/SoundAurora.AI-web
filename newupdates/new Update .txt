@@ -1,45 +1,33 @@
-Intro MP4 section
-
-REMOVE the following text and do not show it with the intro.MP4 video:
-
-SoundAurora
-Professional studio voice, now in your hands with AI power.
-TTS • STT • Voice Clone • Podcast • E-Book • VPS
+Make the site fully responsive for all devices.
+Ensure it works seamlessly on both desktop (PC) and mobile (phone/tablet) applications.
+All elements must automatically adjust to screen size (responsive design),
+and on mobile, menus, buttons, and texts must be properly aligned.
 
 
-Skip button
+1. **Password Card**
 
-Place the “Skip” button at the bottom-right of the page.
+   * The **password card** will be a **single card**.
+   * It will contain only the following two lines:
 
-Style: circular button, color #FFD700 (neon gold).
+     ```
+     Platform Access
+     Enter password to access platform
+     ```
+   * **All text on the card** will be in `#FFD700` (**neon gold**).
+   
+2. **Main Menu (after password login)**
 
-On hover, it should glow, brighten, and shimmer.
+   * The main heading text will be replaced with:
 
-(Merged 3 & 4) Password card + Intro text effect
+     ```
+     Welcome to SoundAurora
+     AI-powered voice cloning and podcast platform is completely free and currently in BETA stage.
+     ```
+   * Color: `#FFD700` (**neon gold**).
+   * Effect: **will glow and sparkle like stars**.
 
-Remove the extra card above the main card and remove its text.
+3. **Bottom Menu Buttons**
 
-There will be only one main password card; medium-sized, flashy, perfectly centered.
-
-At the upper center of the page above the card, show the following text in large size with a star-like blinking effect:
-
-SoundAurora
-Professional studio voice, now in your hands with AI power.
-TTS • STT • Voice Clone • Podcast • E-Book • VPS
-
-
-The same text from the intro animation must appear over the password card, in large font, glowing and blinking.
-
-All these texts must use a single color: neon gold (#FFD700).
-
-Password input field
-
-Remove the current neon effect.
-
-Add a gold glow effect (#FFD700) instead.
-
-Main menu (after password)
-
-Menu heading and all text colors: #FFD700 (neon gold).
-
-The “Coming Soon” button must use the same color, same neon effect, and hover glow.
+   * All buttons will have **equal size and alignment**.
+   * They will be placed in a clean **grid layout** (same width and height).
+   * Hover effect: **shining neon gold glow**.

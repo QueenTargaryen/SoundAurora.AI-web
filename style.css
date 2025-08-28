@@ -360,12 +360,14 @@ body {
 .login-body h3 {
     font-size: 1.5rem;
     margin-bottom: 10px;
-    color: var(--text-primary);
+    color: #FFD700;
+    font-weight: bold;
 }
 
 .login-body p {
-    color: var(--text-secondary);
+    color: #FFD700;
     margin-bottom: 25px;
+    font-weight: normal;
 }
 
 /* GOLD GLOW PASSWORD INPUT */
@@ -474,18 +476,48 @@ body {
     font-size: clamp(2.5rem, 6vw, 4rem);
     font-weight: 800;
     margin-bottom: 20px;
-    background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #FFD700;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 0 40px rgba(255, 215, 0, 0.6);
+    animation: starSparkle 3s ease-in-out infinite;
 }
 
 .hero p {
     font-size: clamp(1.2rem, 3vw, 1.6rem);
-    color: var(--text-secondary);
+    color: #FFD700;
     margin-bottom: 40px;
-    max-width: 600px;
+    max-width: 800px;
     margin-left: auto;
     margin-right: auto;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    animation: starSparkle 3s ease-in-out infinite 0.5s;
+}
+
+@keyframes starSparkle {
+    0%, 100% {
+        text-shadow: 
+            0 0 20px rgba(255, 215, 0, 0.8),
+            0 0 40px rgba(255, 215, 0, 0.6);
+    }
+    25% {
+        text-shadow: 
+            0 0 30px rgba(255, 215, 0, 1),
+            0 0 60px rgba(255, 215, 0, 0.8),
+            0 0 80px rgba(255, 215, 0, 0.4);
+    }
+    50% {
+        text-shadow: 
+            0 0 35px rgba(255, 215, 0, 1),
+            0 0 70px rgba(255, 215, 0, 0.9),
+            0 0 100px rgba(255, 215, 0, 0.6);
+    }
+    75% {
+        text-shadow: 
+            0 0 25px rgba(255, 215, 0, 0.9),
+            0 0 50px rgba(255, 215, 0, 0.7),
+            0 0 75px rgba(255, 215, 0, 0.3);
+    }
 }
 
 /* Sound Waves */
@@ -532,15 +564,17 @@ body {
     font-size: clamp(2rem, 4vw, 2.8rem);
     text-align: center;
     margin-bottom: 50px;
-    color: var(--gold-primary);
+    color: #FFD700;
     font-weight: 700;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    animation: starSparkle 3s ease-in-out infinite 1s;
 }
 
 .features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
-    max-width: 1000px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
@@ -552,13 +586,37 @@ body {
     text-align: center;
     transition: all 0.3s ease;
     cursor: pointer;
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .feature-card:hover {
     transform: translateY(-10px);
     border-color: #FFD700;
-    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.2);
-    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 
+        0 20px 40px rgba(255, 215, 0, 0.4),
+        0 0 30px rgba(255, 215, 0, 0.6),
+        inset 0 0 20px rgba(255, 215, 0, 0.1);
+    background: rgba(255, 215, 0, 0.15);
+    animation: neonGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes neonGlow {
+    0%, 100% {
+        box-shadow: 
+            0 20px 40px rgba(255, 215, 0, 0.4),
+            0 0 30px rgba(255, 215, 0, 0.6),
+            inset 0 0 20px rgba(255, 215, 0, 0.1);
+    }
+    50% {
+        box-shadow: 
+            0 25px 50px rgba(255, 215, 0, 0.6),
+            0 0 40px rgba(255, 215, 0, 0.8),
+            0 0 60px rgba(255, 215, 0, 0.4),
+            inset 0 0 30px rgba(255, 215, 0, 0.2);
+    }
 }
 
 .feature-icon {
@@ -594,9 +652,26 @@ body {
 }
 
 .feature-btn:hover {
-    background: var(--gold-secondary);
+    background: #FFD700;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px var(--glow);
+    box-shadow: 
+        0 8px 25px rgba(255, 215, 0, 0.6),
+        0 0 20px rgba(255, 215, 0, 0.8);
+    animation: buttonGlow 1s ease-in-out infinite;
+}
+
+@keyframes buttonGlow {
+    0%, 100% {
+        box-shadow: 
+            0 8px 25px rgba(255, 215, 0, 0.6),
+            0 0 20px rgba(255, 215, 0, 0.8);
+    }
+    50% {
+        box-shadow: 
+            0 12px 35px rgba(255, 215, 0, 0.8),
+            0 0 30px rgba(255, 215, 0, 1),
+            0 0 50px rgba(255, 215, 0, 0.5);
+    }
 }
 
 .feature-btn:disabled {
@@ -625,46 +700,203 @@ body {
     color: var(--primary-black);
 }
 
-/* Responsive */
+/* Enhanced Responsive Design */
+@media (max-width: 1024px) {
+    .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        max-width: 900px;
+    }
+    
+    .feature-card {
+        height: 260px;
+        padding: 35px 25px;
+    }
+}
+
 @media (max-width: 768px) {
     .navbar {
         padding: 0 20px;
+        height: 60px;
+    }
+    
+    .nav-brand {
+        font-size: 20px;
+    }
+    
+    body {
+        padding-top: 60px;
     }
     
     .skip-btn {
         bottom: 20px;
         right: 20px;
-        padding: 10px 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 12px;
+    }
+    
+    .login-hero-text {
+        padding: 0 20px;
+        margin-bottom: 15px;
+    }
+    
+    .login-hero-title {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+    
+    .login-hero-tagline {
+        font-size: clamp(0.9rem, 3vw, 1.2rem);
+    }
+    
+    .login-hero-subtitle {
+        font-size: clamp(0.8rem, 2.5vw, 1rem);
     }
     
     .login-card {
         margin: 20px;
+        width: min(400px, 90vw);
     }
     
-    .login-header, .login-body {
-        padding: 25px 20px;
+    .login-body {
+        padding: 30px 25px;
+    }
+    
+    .hero {
+        padding: 60px 0;
+    }
+    
+    .hero h1 {
+        font-size: clamp(2rem, 8vw, 3rem);
+    }
+    
+    .hero p {
+        font-size: clamp(1rem, 4vw, 1.3rem);
+        max-width: 90%;
+    }
+    
+    .features {
+        padding: 60px 0;
     }
     
     .features-grid {
         grid-template-columns: 1fr;
         gap: 20px;
+        padding: 0 20px;
     }
     
     .feature-card {
+        height: auto;
+        min-height: 240px;
         padding: 30px 20px;
     }
-}
-
-@media (max-width: 480px) {
+    
     .sound-waves {
-        gap: 4px;
+        height: 80px;
+        gap: 6px;
     }
     
     .wave {
         width: 6px;
     }
+}
+
+@media (max-width: 480px) {
+    .login-modal {
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .login-hero-title {
+        font-size: clamp(1.8rem, 10vw, 2.5rem);
+        margin-bottom: 10px;
+    }
+    
+    .login-hero-tagline {
+        font-size: clamp(0.8rem, 4vw, 1rem);
+        margin-bottom: 6px;
+    }
+    
+    .login-hero-subtitle {
+        font-size: clamp(0.7rem, 3vw, 0.9rem);
+    }
+    
+    .login-card {
+        width: min(350px, 95vw);
+    }
+    
+    .login-body {
+        padding: 25px 20px;
+    }
+    
+    .login-body h3 {
+        font-size: 1.3rem;
+    }
+    
+    .hero h1 {
+        font-size: clamp(1.8rem, 10vw, 2.5rem);
+    }
+    
+    .hero p {
+        font-size: clamp(0.9rem, 5vw, 1.1rem);
+    }
+    
+    .features h2 {
+        font-size: clamp(1.5rem, 6vw, 2rem);
+    }
+    
+    .feature-card {
+        padding: 25px 15px;
+        min-height: 220px;
+    }
+    
+    .feature-card h3 {
+        font-size: 1.3rem;
+    }
+    
+    .feature-card p {
+        font-size: 1rem;
+    }
+    
+    .sound-waves {
+        height: 60px;
+        gap: 4px;
+        margin: 30px 0;
+    }
+    
+    .wave {
+        width: 4px;
+    }
     
     #passwordInput, #loginBtn {
         padding: 15px;
+        font-size: 15px;
+    }
+    
+    .skip-btn {
+        width: 45px;
+        height: 45px;
+        bottom: 15px;
+        right: 15px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 360px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .login-card {
+        width: min(320px, 95vw);
+    }
+    
+    .feature-card {
+        padding: 20px 10px;
+        min-height: 200px;
+    }
+    
+    .features-grid {
+        padding: 0 15px;
     }
 }

@@ -23,8 +23,8 @@ const LANG_DATA = {
             error: "Hatalı şifre! Lütfen tekrar deneyin."
         },
         main: {
-            heroTitle: "SoundAurora'ya Hoş Geldiniz",
-            heroDesc: "Yapay zeka ile ses klonlama ve podcast platformu",
+            heroTitle: "Welcome to SoundAurora",
+            heroDesc: "AI-powered voice cloning and podcast platform is completely free and currently in BETA stage.",
             featuresTitle: "Özellikler",
             tts: {
                 title: "Metinden Ses (TTS)",
@@ -75,7 +75,7 @@ const LANG_DATA = {
         },
         main: {
             heroTitle: "Welcome to SoundAurora",
-            heroDesc: "AI-powered voice cloning and podcast platform",
+            heroDesc: "AI-powered voice cloning and podcast platform is completely free and currently in BETA stage.",
             featuresTitle: "Features",
             tts: {
                 title: "Text to Speech (TTS)",
