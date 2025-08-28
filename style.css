@@ -145,25 +145,45 @@ body {
 .skip-btn {
     position: absolute;
     bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 30px;
+    width: 60px;
+    height: 60px;
     background: rgba(0, 0, 0, 0.8);
     border: 2px solid #FFD700;
     color: #FFD700;
-    padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: 50%;
     cursor: pointer;
     font-weight: bold;
+    font-size: 14px;
     transition: all 0.3s ease;
     z-index: 15;
     display: none;
+    align-items: center;
+    justify-content: center;
 }
 
 .skip-btn:hover {
     background: #FFD700;
     color: var(--primary-black);
-    transform: translateX(-50%) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 
+        0 8px 25px rgba(255, 215, 0, 0.6),
+        0 0 30px rgba(255, 215, 0, 0.8);
+    animation: shimmer 0.8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% {
+        box-shadow: 
+            0 8px 25px rgba(255, 215, 0, 0.6),
+            0 0 30px rgba(255, 215, 0, 0.8);
+    }
+    50% {
+        box-shadow: 
+            0 8px 30px rgba(255, 215, 0, 0.9),
+            0 0 40px rgba(255, 215, 0, 1),
+            0 0 60px rgba(255, 215, 0, 0.5);
+    }
 }
 
 /* Animations */
@@ -209,16 +229,65 @@ body {
     backdrop-filter: blur(15px);
     z-index: 3000; /* Highest z-index */
     display: none;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     opacity: 0;
     transition: opacity 0.4s ease, visibility 0.4s ease;
+    gap: 30px;
 }
 
 .login-modal.show {
     display: flex;
     opacity: 1;
     visibility: visible;
+}
+
+/* Login Hero Text Above Card */
+.login-hero-text {
+    text-align: center;
+    margin-bottom: 20px;
+    animation: starBlink 2s ease-in-out infinite;
+}
+
+.login-hero-title {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 800;
+    color: #FFD700;
+    margin-bottom: 15px;
+    text-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.8),
+        0 0 40px rgba(255, 215, 0, 0.6);
+    animation: starBlink 2s ease-in-out infinite;
+}
+
+.login-hero-tagline {
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    color: #FFD700;
+    margin-bottom: 8px;
+    opacity: 0.9;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.login-hero-subtitle {
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    color: #FFD700;
+    opacity: 0.8;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+@keyframes starBlink {
+    0%, 100% {
+        text-shadow: 
+            0 0 20px rgba(255, 215, 0, 0.8),
+            0 0 40px rgba(255, 215, 0, 0.6);
+    }
+    50% {
+        text-shadow: 
+            0 0 30px rgba(255, 215, 0, 1),
+            0 0 60px rgba(255, 215, 0, 0.8),
+            0 0 80px rgba(255, 215, 0, 0.4);
+    }
 }
 
 .login-card {
@@ -299,12 +368,12 @@ body {
     margin-bottom: 25px;
 }
 
-/* SPECTACULAR NEON PASSWORD INPUT */
+/* GOLD GLOW PASSWORD INPUT */
 #passwordInput {
     width: 100%;
     padding: 18px 20px;
     background: rgba(0, 0, 0, 0.8);
-    border: 3px solid var(--gold-primary);
+    border: 2px solid #FFD700;
     border-radius: 15px;
     color: var(--text-primary);
     font-size: 16px;
@@ -312,36 +381,22 @@ body {
     transition: all 0.4s ease;
     position: relative;
     
-    /* Initial subtle glow */
+    /* Initial gold glow */
     box-shadow: 
-        0 0 10px var(--glow),
-        inset 0 0 10px rgba(212, 175, 55, 0.1);
+        0 0 10px rgba(255, 215, 0, 0.3),
+        inset 0 0 10px rgba(255, 215, 0, 0.1);
 }
 
 #passwordInput:focus {
     outline: none;
     background: rgba(0, 0, 0, 0.9);
+    border-color: #FFD700;
     
-    /* SPECTACULAR NEON GLOW EFFECT */
-    border-color: var(--neon-blue);
+    /* Gold glow effect */
     box-shadow: 
-        /* Multiple colored glows */
-        0 0 20px var(--neon-blue),
-        0 0 40px var(--neon-blue),
-        0 0 60px var(--neon-purple),
-        0 0 80px var(--neon-pink),
-        
-        /* Inner glows */
-        inset 0 0 20px rgba(0, 243, 255, 0.2),
-        inset 0 0 40px rgba(157, 0, 255, 0.1),
-        
-        /* Outer ring effect */
-        0 0 0 2px rgba(0, 243, 255, 0.5),
-        0 0 0 4px rgba(157, 0, 255, 0.3),
-        0 0 0 6px rgba(255, 0, 144, 0.2);
-    
-    /* Animated border */
-    animation: neonPulse 2s ease-in-out infinite;
+        0 0 20px rgba(255, 215, 0, 0.6),
+        0 0 40px rgba(255, 215, 0, 0.4),
+        inset 0 0 20px rgba(255, 215, 0, 0.2);
 }
 
 #passwordInput::placeholder {
@@ -350,35 +405,7 @@ body {
 }
 
 #passwordInput:focus::placeholder {
-    color: rgba(0, 243, 255, 0.8);
-}
-
-/* Spectacular neon pulse animation */
-@keyframes neonPulse {
-    0%, 100% {
-        border-color: var(--neon-blue);
-        box-shadow: 
-            0 0 20px var(--neon-blue),
-            0 0 40px var(--neon-blue),
-            0 0 60px var(--neon-purple),
-            inset 0 0 20px rgba(0, 243, 255, 0.2);
-    }
-    33% {
-        border-color: var(--neon-purple);
-        box-shadow: 
-            0 0 25px var(--neon-purple),
-            0 0 50px var(--neon-purple),
-            0 0 75px var(--neon-pink),
-            inset 0 0 25px rgba(157, 0, 255, 0.3);
-    }
-    66% {
-        border-color: var(--neon-pink);
-        box-shadow: 
-            0 0 30px var(--neon-pink),
-            0 0 60px var(--neon-pink),
-            0 0 90px var(--gold-primary),
-            inset 0 0 30px rgba(255, 0, 144, 0.2);
-    }
+    color: rgba(255, 215, 0, 0.8);
 }
 
 #loginBtn {
@@ -585,9 +612,17 @@ body {
 }
 
 .coming-soon .feature-btn {
-    background: var(--text-secondary);
-    cursor: not-allowed;
-    opacity: 0.5;
+    background: #FFD700;
+    color: var(--primary-black);
+    cursor: pointer;
+    opacity: 1;
+}
+
+.coming-soon .feature-btn:hover {
+    background: #FFD700;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+    color: var(--primary-black);
 }
 
 /* Responsive */

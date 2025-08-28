@@ -171,6 +171,15 @@ function updateLanguageDisplay() {
         if (skipBtn) skipBtn.textContent = data.intro.skip;
     }
     
+    // Login hero texts
+    const loginHeroTagline = document.getElementById('loginHeroTagline');
+    const loginHeroSubtitle = document.getElementById('loginHeroSubtitle');
+    
+    if (loginHeroTagline && loginHeroSubtitle) {
+        loginHeroTagline.textContent = data.intro.tagline;
+        loginHeroSubtitle.textContent = data.intro.subtitle;
+    }
+    
     // Login texts
     const loginTagline = document.getElementById('loginTagline');
     const loginSubtitle = document.getElementById('loginSubtitle');
@@ -227,7 +236,7 @@ function initIntro() {
     // Show skip button after 7 seconds
     setTimeout(() => {
         if (skipBtn) {
-            skipBtn.style.display = 'block';
+            skipBtn.style.display = 'flex';
             skipBtn.style.opacity = '0';
             setTimeout(() => {
                 skipBtn.style.opacity = '1';
