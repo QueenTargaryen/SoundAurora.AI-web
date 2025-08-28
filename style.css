@@ -99,13 +99,29 @@ body {
 /* FIXED: Video stays in background */
 .intro-video {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 1; /* Low z-index - background */
     opacity: 0.8;
+}
+
+/* Desktop: Square video format */
+@media (min-width: 769px) {
+    .intro-video {
+        width: min(100vh, 100vw);
+        height: min(100vh, 100vw);
+        object-fit: cover;
+    }
+}
+
+/* Mobile: Portrait video format */
+@media (max-width: 768px) {
+    .intro-video {
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+    }
 }
 
 /* FIXED: Content stays on top of video */
@@ -156,7 +172,7 @@ body {
     font-weight: bold;
     font-size: 14px;
     transition: all 0.3s ease;
-    z-index: 15;
+    z-index: 2001; /* Higher z-index to ensure visibility */
     display: none;
     align-items: center;
     justify-content: center;
@@ -622,6 +638,10 @@ body {
 .feature-icon {
     font-size: 3rem;
     margin-bottom: 20px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .feature-card h3 {
@@ -639,7 +659,7 @@ body {
 }
 
 .feature-btn {
-    background: var(--gold-primary);
+    background: #FFD700;
     border: none;
     padding: 12px 30px;
     border-radius: 10px;
@@ -649,6 +669,7 @@ body {
     font-size: 16px;
     width: 100%;
     transition: all 0.3s ease;
+    margin-top: auto;
 }
 
 .feature-btn:hover {
@@ -734,6 +755,9 @@ body {
         width: 50px;
         height: 50px;
         font-size: 12px;
+        z-index: 2001;
+        background: rgba(0, 0, 0, 0.9);
+        border: 3px solid #FFD700;
     }
     
     .login-hero-text {
@@ -879,6 +903,9 @@ body {
         bottom: 15px;
         right: 15px;
         font-size: 11px;
+        z-index: 2001;
+        background: rgba(0, 0, 0, 0.95);
+        border: 3px solid #FFD700;
     }
 }
 

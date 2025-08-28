@@ -14,17 +14,17 @@ const LANG_DATA = {
             skip: "Geç"
         },
         login: {
-            tagline: "Profesyonel stüdyo sesi artık yapay zeka gücüyle sizin elinizde.",
-            subtitle: "TTS • STT • Ses Klonlama • Podcast • E-Kitap • VPS",
-            title: "Platforma Giriş",
-            desc: "Platforma erişmek için şifre girin",
-            placeholder: "Şifrenizi girin...", 
-            button: "Giriş",
-            error: "Hatalı şifre! Lütfen tekrar deneyin."
+            tagline: "Professional studio voice, now in your hands with AI power.",
+            subtitle: "TTS • STT • Voice Clone • Podcast • E-Book • VPS",
+            title: "Platform Access",
+            desc: "Enter password to access platform",
+            placeholder: "Enter your password...", 
+            button: "Login",
+            error: "Wrong password! Please try again."
         },
         main: {
-            heroTitle: "Welcome to SoundAurora",
-            heroDesc: "AI-powered voice cloning and podcast platform is completely free and currently in BETA stage.",
+            heroTitle: "SoundAurora'ya Hoş Geldiniz",
+            heroDesc: "Yapay zeka destekli ses klonlama ve podcast platformu tamamen ücretsizdir ve şu anda BETA aşamasındadır.",
             featuresTitle: "Özellikler",
             tts: {
                 title: "Metinden Ses (TTS)",
@@ -181,18 +181,14 @@ function updateLanguageDisplay() {
     }
     
     // Login texts
-    const loginTagline = document.getElementById('loginTagline');
-    const loginSubtitle = document.getElementById('loginSubtitle');
     const loginTitle = document.getElementById('loginTitle');
     const loginDesc = document.getElementById('loginDesc');
     const loginBtn = document.getElementById('loginBtn');
     
-    if (loginTagline && loginSubtitle && loginTitle && loginDesc && loginBtn) {
-        loginTagline.textContent = data.login.tagline;
-        loginSubtitle.textContent = data.login.subtitle;
+    if (loginTitle && loginDesc && loginBtn) {
         loginTitle.textContent = data.login.title;
         loginDesc.textContent = data.login.desc;
-        passwordInput.placeholder = data.login.placeholder;
+        if (passwordInput) passwordInput.placeholder = data.login.placeholder;
         loginBtn.textContent = data.login.button;
     }
     

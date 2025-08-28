@@ -1,33 +1,16 @@
-Make the site fully responsive for all devices.
-Ensure it works seamlessly on both desktop (PC) and mobile (phone/tablet) applications.
-All elements must automatically adjust to screen size (responsive design),
-and on mobile, menus, buttons, and texts must be properly aligned.
+1- Adjust the intro.MP4 video so that it does not appear oversized in the application. 
+On desktop (PC), keep the video in a square format to maintain the visual quality. 
+On mobile devices, display the video in vertical (portrait) format. 
+The "Skip" button must always remain visible in the bottom-right corner on both desktop and mobile. 
+Currently, the Skip button is not visible on mobile — fix this so it appears properly.
 
+2- Change all texts in the password input field to English. 
+Any text currently displayed in Turkish should be replaced with English. 
+For example, instead of "Şifre giriniz" it should say "Enter your password".
 
-1. **Password Card**
+3- After logging in from the password screen, the main menu does not switch to Turkish when the TR option is selected. 
+Fix this so that when TR is selected, all menu items, headings, and buttons are displayed fully in Turkish.
 
-   * The **password card** will be a **single card**.
-   * It will contain only the following two lines:
-
-     ```
-     Platform Access
-     Enter password to access platform
-     ```
-   * **All text on the card** will be in `#FFD700` (**neon gold**).
-   
-2. **Main Menu (after password login)**
-
-   * The main heading text will be replaced with:
-
-     ```
-     Welcome to SoundAurora
-     AI-powered voice cloning and podcast platform is completely free and currently in BETA stage.
-     ```
-   * Color: `#FFD700` (**neon gold**).
-   * Effect: **will glow and sparkle like stars**.
-
-3. **Bottom Menu Buttons**
-
-   * All buttons will have **equal size and alignment**.
-   * They will be placed in a clean **grid layout** (same width and height).
-   * Hover effect: **shining neon gold glow**.
+4- The TTS button in the main menu looks different from the other buttons. 
+Make it the same color, size, and alignment as all the other buttons. 
+All buttons must be equal, consistent, and properly aligned.
