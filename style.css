@@ -96,17 +96,39 @@ body {
     pointer-events: none;
 }
 
-/* FIXED: Modern responsive video background */
+/* FIXED: Mobile-first responsive video background */
 .intro-video {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 100vw;
+    min-height: 100vh;
     object-fit: cover;
     object-position: center center;
     z-index: 1; /* Low z-index - background */
     opacity: 0.8;
+}
+
+/* All mobile devices - aggressive coverage */
+@media (max-width: 768px) {
+    .intro-video {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        min-width: 100vw !important;
+        min-height: 100vh !important;
+        max-width: none !important;
+        max-height: none !important;
+        object-fit: cover !important;
+        transform: none !important;
+        border-radius: 0 !important;
+    }
 }
 
 /* Desktop optimization */
@@ -116,8 +138,8 @@ body {
     }
 }
 
-/* Tablet landscape - centered square */
-@media (min-width: 481px) and (max-width: 768px) and (orientation: landscape) {
+/* Tablet landscape only - centered square */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
     .intro-video {
         top: 50%;
         left: 50%;
@@ -125,24 +147,13 @@ body {
         width: min(80vh, 80vw);
         height: min(80vh, 80vw);
         border-radius: 8px;
-    }
-}
-
-/* Mobile portrait - ensure full coverage */
-@media (max-width: 480px) and (orientation: portrait) {
-    .intro-video {
-        width: 100vw;
-        height: 100vh;
-        top: 0;
-        left: 0;
-        transform: none;
-        border-radius: 0;
-        object-fit: cover;
+        min-width: auto;
+        min-height: auto;
     }
 }
 
 /* Ultra-wide screens - centered */
-@media (min-aspect-ratio: 21/9) {
+@media (min-aspect-ratio: 21/9) and (min-width: 1200px) {
     .intro-video {
         top: 50%;
         left: 50%;
@@ -150,6 +161,8 @@ body {
         width: 60vh;
         height: 60vh;
         border-radius: 15px;
+        min-width: auto;
+        min-height: auto;
     }
 }
 
