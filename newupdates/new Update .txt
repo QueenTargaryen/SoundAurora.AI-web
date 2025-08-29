@@ -1,6 +1,62 @@
-Fix the Intro.MP4 video settings:
-- On mobile, the video looks correct, but the Skip button has shifted down. The Skip button must always stay fixed and visible in the bottom-right corner on mobile.  
-- On desktop, the video appears distorted. The intro video should be fullscreen, sharp, and properly aligned on desktop.  
-- The TTS button is still broken. Make the TTS button the same color, size, and alignment as all the other menu buttons.  
 
-Do not break one thing while fixing another. All elements must work together consistently and without issues.
+###  Step-by-Step Tasks (Frontend + Backend Integration)
+
+1. **index.html**
+
+   * In the `features` section, the **TTS card** already exists (`id="ttsBtn"`).
+   * Below it, add a new **TTS section** (`<section id="tts">`). Inside it include:
+
+     * Text input (textarea).
+     * Language selector (`select` → tr/en).
+     * Voice selector (`select` → will be filled via `/api/voices` call).
+     * Speed slider (`0.5 – 1.5`).
+     * Style selector (`neutral, happy, sad`).
+     * **Generate button**, and below it an audio player + download link for the result.
+
+2. **style.css**
+
+   * Add simple styles for the TTS form (container, label, input, button).
+   * Must remain responsive (mobile/desktop friendly).
+
+3. **main.js**
+
+   * Add a new function: `initTTS()`.
+
+   * When `generateBtn` is clicked:
+
+     ```js
+     fetch('/api/tts/generate', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({
+          text: textarea.value,
+          lang: langSelect.value,
+          voice_id: voiceSelect.value,
+          style: styleSelect.value,
+          speed: parseFloat(speedRange.value)
+       })
+     })
+     .then(res => res.blob())
+     .then(blob => { 
+        audio.src = URL.createObjectURL(blob); 
+        audio.play(); 
+     });
+     ```
+
+   * Also load voice list from `/api/voices` endpoint.
+
+4. **Backend (FastAPI /api/tts/generate)**
+
+   * Already available in the docs: uses Piper + OpenVoice.
+   * Your VPS (SoundAurora-VPS) can run it on CPU (no GPU required).
+   * Use these free/open-license models:
+
+     * **Turkish:** `tr_TR-fettah-medium` (CC0)
+     * **English:** `en_US-arctic-medium` (CMU Arctic)
+
+5. **Test & Verify**
+
+   * First, test with browser TTS (Web Speech API) fallback (no server required).
+   * Then test `/api/tts/generate` endpoint.
+   * Check that the audio plays and can be downloaded.
+

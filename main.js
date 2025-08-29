@@ -137,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initLogin();
     initLanguageToggle();
     initFeatureButtons();
+    initTTS();
 });
 
 // Language Functions
@@ -388,9 +389,14 @@ function initFeatureButtons() {
 }
 
 function handleFeatureClick(feature) {
+    // Handle TTS feature specially
+    if (feature === 'tts') {
+        showTTSPage();
+        return;
+    }
+    
     const messages = {
         tr: {
-            tts: "Metinden Ses özelliği yakında gelecek!",
             stt: "Ses → Metin özelliği yakında gelecek!",
             clone: "Ses Klonlama özelliği yakında gelecek!",
             podcast: "Podcast Üretimi özelliği yakında gelecek!",
@@ -398,7 +404,6 @@ function handleFeatureClick(feature) {
             soon: "Bu özellik çok yakında gelecek!"
         },
         en: {
-            tts: "Text to Speech feature coming soon!",
             stt: "Speech to Text feature coming soon!",
             clone: "Voice Cloning feature coming soon!",
             podcast: "Podcast Generation feature coming soon!",
@@ -454,6 +459,394 @@ function showNotification(message) {
             }
         }, 300);
     }, 3000);
+}
+
+// TTS Variables
+let ttsSection, ttsElements = {};
+let availableVoices = [];
+let currentAudioBlob = null;
+
+// TTS Functions
+function initTTS() {
+    // Get TTS elements
+    ttsSection = document.getElementById('tts');
+    ttsElements = {
+        backBtn: document.getElementById('backBtn'),
+        textInput: document.getElementById('textInput'),
+        charCount: document.getElementById('charCount'),
+        langSelect: document.getElementById('langSelect'),
+        voiceSelect: document.getElementById('voiceSelect'),
+        styleSelect: document.getElementById('styleSelect'),
+        speedRange: document.getElementById('speedRange'),
+        speedValue: document.getElementById('speedValue'),
+        generateBtn: document.getElementById('generateBtn'),
+        generateText: document.getElementById('generateText'),
+        spinner: document.getElementById('spinner'),
+        audioResult: document.getElementById('audioResult'),
+        audioPlayer: document.getElementById('audioPlayer'),
+        downloadBtn: document.getElementById('downloadBtn'),
+        playAgainBtn: document.getElementById('playAgainBtn'),
+        errorMessage: document.getElementById('errorMessage')
+    };
+
+    // Initialize TTS event listeners
+    if (ttsElements.backBtn) {
+        ttsElements.backBtn.addEventListener('click', () => {
+            showMainMenu();
+        });
+    }
+
+    if (ttsElements.textInput) {
+        ttsElements.textInput.addEventListener('input', updateCharCount);
+    }
+
+    if (ttsElements.speedRange) {
+        ttsElements.speedRange.addEventListener('input', (e) => {
+            if (ttsElements.speedValue) {
+                ttsElements.speedValue.textContent = e.target.value;
+            }
+        });
+    }
+
+    if (ttsElements.langSelect) {
+        ttsElements.langSelect.addEventListener('change', loadVoicesForLanguage);
+    }
+
+    if (ttsElements.generateBtn) {
+        ttsElements.generateBtn.addEventListener('click', generateTTS);
+    }
+
+    if (ttsElements.downloadBtn) {
+        ttsElements.downloadBtn.addEventListener('click', downloadAudio);
+    }
+
+    if (ttsElements.playAgainBtn) {
+        ttsElements.playAgainBtn.addEventListener('click', playAudioAgain);
+    }
+
+    // Load initial voices
+    loadVoicesForLanguage();
+}
+
+async function loadVoicesForLanguage() {
+    if (!ttsElements.voiceSelect) return;
+    
+    const selectedLang = ttsElements.langSelect?.value || 'en';
+    ttsElements.voiceSelect.innerHTML = '<option value="">Loading voices...</option>';
+    
+    try {
+        // First try to load voices from server API
+        const response = await fetch('/api/voices');
+        if (response.ok) {
+            const serverVoices = await response.json();
+            availableVoices = serverVoices.filter(voice => voice.language === selectedLang);
+        } else {
+            throw new Error('Server voices not available');
+        }
+    } catch (error) {
+        console.log('Server voices not available, using browser voices');
+        availableVoices = [];
+    }
+    
+    // Load browser voices as fallback/additional options
+    const browserVoices = speechSynthesis.getVoices();
+    const filteredBrowserVoices = browserVoices.filter(voice => {
+        const voiceLang = voice.lang.toLowerCase();
+        return (selectedLang === 'tr' && voiceLang.includes('tr')) || 
+               (selectedLang === 'en' && voiceLang.includes('en'));
+    });
+    
+    // Add browser voices with special marking
+    filteredBrowserVoices.forEach(voice => {
+        availableVoices.push({
+            id: voice.name,
+            name: voice.name + ' (Browser)',
+            language: selectedLang,
+            browserVoice: voice
+        });
+    });
+    
+    // Populate voice selector
+    if (availableVoices.length === 0) {
+        ttsElements.voiceSelect.innerHTML = '<option value="">No voices available</option>';
+        return;
+    }
+    
+    ttsElements.voiceSelect.innerHTML = '';
+    availableVoices.forEach(voice => {
+        const option = document.createElement('option');
+        option.value = voice.id;
+        option.textContent = voice.name;
+        ttsElements.voiceSelect.appendChild(option);
+    });
+}
+
+function showTTSPage() {
+    if (mainContent) mainContent.style.display = 'none';
+    if (ttsSection) ttsSection.style.display = 'block';
+    
+    // Reset form
+    if (ttsElements.textInput) ttsElements.textInput.value = '';
+    if (ttsElements.audioResult) ttsElements.audioResult.style.display = 'none';
+    if (ttsElements.errorMessage) ttsElements.errorMessage.style.display = 'none';
+    updateCharCount();
+}
+
+function showMainMenu() {
+    if (ttsSection) ttsSection.style.display = 'none';
+    if (mainContent) mainContent.style.display = 'block';
+}
+
+function updateCharCount() {
+    if (ttsElements.textInput && ttsElements.charCount) {
+        const count = ttsElements.textInput.value.length;
+        ttsElements.charCount.textContent = count;
+        
+        if (count > 450) {
+            ttsElements.charCount.style.color = '#ff6b6b';
+        } else if (count > 350) {
+            ttsElements.charCount.style.color = '#ffa500';
+        } else {
+            ttsElements.charCount.style.color = 'var(--text-secondary)';
+        }
+    }
+}
+
+async function generateTTS() {
+    if (!ttsElements.textInput || !ttsElements.textInput.value.trim()) {
+        showError('Please enter some text to convert.');
+        return;
+    }
+
+    const formData = {
+        text: ttsElements.textInput.value.trim(),
+        lang: ttsElements.langSelect.value,
+        voice_id: ttsElements.voiceSelect.value,
+        style: ttsElements.styleSelect.value,
+        speed: parseFloat(ttsElements.speedRange.value)
+    };
+
+    setLoadingState(true);
+    hideError();
+
+    try {
+        const selectedVoice = availableVoices.find(v => v.id === formData.voice_id);
+        
+        if (selectedVoice && selectedVoice.browserVoice) {
+            await generateWithBrowserTTS(formData);
+        } else {
+            await generateWithServerTTS(formData);
+        }
+    } catch (error) {
+        console.error('TTS Error:', error);
+        showError('Failed to generate audio. Please try again.');
+    } finally {
+        setLoadingState(false);
+    }
+}
+
+async function generateWithServerTTS(formData) {
+    try {
+        const response = await fetch('/api/tts/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            throw new Error('Server TTS failed, trying browser fallback');
+        }
+
+        const blob = await response.blob();
+        currentAudioBlob = blob;
+        
+        const audioUrl = URL.createObjectURL(blob);
+        ttsElements.audioPlayer.src = audioUrl;
+        ttsElements.audioResult.style.display = 'block';
+        
+        // Auto-play the generated audio
+        await ttsElements.audioPlayer.play();
+        
+    } catch (error) {
+        console.log('Server TTS failed, using browser fallback');
+        await generateWithBrowserTTS(formData);
+    }
+}
+
+async function generateWithBrowserTTS(formData) {
+    if (!window.speechSynthesis) {
+        throw new Error('Speech synthesis not supported in this browser');
+    }
+
+    return new Promise((resolve, reject) => {
+        const utterance = new SpeechSynthesisUtterance(formData.text);
+        
+        // Find the browser voice
+        const voices = window.speechSynthesis.getVoices();
+        const selectedVoice = voices.find(v => v.name === formData.voice_id);
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+            utterance.lang = selectedVoice.lang;
+        } else {
+            utterance.lang = formData.lang === 'tr' ? 'tr-TR' : 'en-US';
+        }
+        
+        utterance.rate = formData.speed;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+
+        utterance.onend = () => {
+            ttsElements.audioResult.style.display = 'block';
+            resolve();
+        };
+
+        utterance.onerror = (event) => {
+            reject(new Error('Browser TTS failed: ' + event.error));
+        };
+
+        window.speechSynthesis.speak(utterance);
+    });
+}
+
+function setLoadingState(isLoading) {
+    if (ttsElements.generateBtn && ttsElements.generateText && ttsElements.spinner) {
+        ttsElements.generateBtn.disabled = isLoading;
+        ttsElements.generateText.style.display = isLoading ? 'none' : 'inline';
+        ttsElements.spinner.style.display = isLoading ? 'inline-block' : 'none';
+    }
+}
+
+function showError(message) {
+    if (ttsElements.errorMessage) {
+        ttsElements.errorMessage.textContent = message;
+        ttsElements.errorMessage.style.display = 'block';
+    }
+}
+
+function hideError() {
+    if (ttsElements.errorMessage) {
+        ttsElements.errorMessage.style.display = 'none';
+    }
+}
+
+function downloadAudio() {
+    if (currentAudioBlob) {
+        const url = URL.createObjectURL(currentAudioBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'soundaurora_tts_' + Date.now() + '.mp3';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } else {
+        showError('No audio available for download');
+    }
+}
+
+function playAudioAgain() {
+    if (ttsElements.audioPlayer && ttsElements.audioPlayer.src) {
+        ttsElements.audioPlayer.currentTime = 0;
+        ttsElements.audioPlayer.play();
+    }
+}
+
+async function generateWithServerTTS(formData) {
+    const response = await fetch('/api/tts/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    });
+    
+    if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+    }
+    
+    const blob = await response.blob();
+    currentAudioBlob = blob;
+    
+    const audioUrl = URL.createObjectURL(blob);
+    ttsElements.audioPlayer.src = audioUrl;
+    ttsElements.audioResult.style.display = 'block';
+    ttsElements.audioPlayer.play();
+}
+
+async function generateWithBrowserTTS(formData) {
+    return new Promise((resolve, reject) => {
+        if (!window.speechSynthesis) {
+            reject(new Error('Speech synthesis not supported'));
+            return;
+        }
+        
+        const utterance = new SpeechSynthesisUtterance(formData.text);
+        const voices = window.speechSynthesis.getVoices();
+        const selectedVoice = voices.find(v => v.name === formData.voice_id);
+        
+        if (selectedVoice) {
+            utterance.voice = selectedVoice;
+        }
+        
+        utterance.rate = formData.speed;
+        utterance.pitch = formData.style === 'happy' ? 1.2 : formData.style === 'sad' ? 0.8 : 1.0;
+        
+        utterance.onend = () => {
+            // For browser TTS, we can't get audio blob, so just show success message
+            ttsElements.audioResult.style.display = 'block';
+            ttsElements.audioPlayer.style.display = 'none';
+            ttsElements.downloadBtn.style.display = 'none';
+            resolve();
+        };
+        
+        utterance.onerror = (event) => {
+            reject(new Error('Speech synthesis failed: ' + event.error));
+        };
+        
+        window.speechSynthesis.speak(utterance);
+    });
+}
+
+function downloadAudio() {
+    if (!currentAudioBlob) {
+        showError('No audio to download.');
+        return;
+    }
+    
+    const url = URL.createObjectURL(currentAudioBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tts-audio-${Date.now()}.wav`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function playAudioAgain() {
+    if (ttsElements.audioPlayer && ttsElements.audioPlayer.src) {
+        ttsElements.audioPlayer.currentTime = 0;
+        ttsElements.audioPlayer.play();
+    }
+}
+
+function setLoadingState(isLoading) {
+    if (ttsElements.generateBtn && ttsElements.generateText && ttsElements.spinner) {
+        ttsElements.generateBtn.disabled = isLoading;
+        ttsElements.generateText.textContent = isLoading ? 'Generating...' : 'Generate Audio';
+        ttsElements.spinner.style.display = isLoading ? 'inline-block' : 'none';
+    }
+}
+
+function showError(message) {
+    if (ttsElements.errorMessage) {
+        ttsElements.errorMessage.textContent = message;
+        ttsElements.errorMessage.style.display = 'block';
+    }
+}
+
+function hideError() {
+    if (ttsElements.errorMessage) {
+        ttsElements.errorMessage.style.display = 'none';
+    }
 }
 
 // Add shake animation CSS

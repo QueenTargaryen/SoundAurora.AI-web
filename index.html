@@ -122,6 +122,91 @@
                 </div>
             </div>
         </section>
+
+        <!-- TTS Section -->
+        <section class="tts-section" id="tts" style="display: none;">
+            <div class="container">
+                <div class="tts-header">
+                    <button class="back-btn" id="backBtn">← Back to Menu</button>
+                    <h2 id="ttsPageTitle">Text to Speech (TTS)</h2>
+                    <p id="ttsPageDesc">Convert your text to professional audio files</p>
+                </div>
+
+                <div class="tts-form-container">
+                    <div class="tts-form">
+                        <!-- Text Input -->
+                        <div class="form-group">
+                            <label for="textInput" id="textLabel">Enter your text:</label>
+                            <textarea id="textInput" placeholder="Type or paste your text here..." rows="6" maxlength="500"></textarea>
+                            <div class="char-counter">
+                                <span id="charCount">0</span>/500 characters
+                            </div>
+                        </div>
+
+                        <!-- Settings Row -->
+                        <div class="settings-row">
+                            <!-- Language Selector -->
+                            <div class="form-group">
+                                <label for="langSelect" id="langLabel">Language:</label>
+                                <select id="langSelect">
+                                    <option value="en">English</option>
+                                    <option value="tr">Türkçe</option>
+                                </select>
+                            </div>
+
+                            <!-- Voice Selector -->
+                            <div class="form-group">
+                                <label for="voiceSelect" id="voiceLabel">Voice:</label>
+                                <select id="voiceSelect">
+                                    <option value="">Loading voices...</option>
+                                </select>
+                            </div>
+
+                            <!-- Style Selector -->
+                            <div class="form-group">
+                                <label for="styleSelect" id="styleLabel">Style:</label>
+                                <select id="styleSelect">
+                                    <option value="neutral">Neutral</option>
+                                    <option value="happy">Happy</option>
+                                    <option value="sad">Sad</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Speed Slider -->
+                        <div class="form-group">
+                            <label for="speedRange" id="speedLabel">Speed: <span id="speedValue">1.0</span>x</label>
+                            <input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="1.0">
+                            <div class="speed-markers">
+                                <span>0.5x</span>
+                                <span>1.0x</span>
+                                <span>1.5x</span>
+                            </div>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <button class="generate-btn" id="generateBtn">
+                            <span id="generateText">Generate Audio</span>
+                            <div class="spinner" id="spinner" style="display: none;"></div>
+                        </button>
+
+                        <!-- Audio Result -->
+                        <div class="audio-result" id="audioResult" style="display: none;">
+                            <div class="audio-player">
+                                <audio id="audioPlayer" controls></audio>
+                            </div>
+                            <div class="audio-actions">
+                                <button class="download-btn" id="downloadBtn">Download Audio</button>
+                                <button class="play-again-btn" id="playAgainBtn">Play Again</button>
+                            </div>
+                        </div>
+
+                        <!-- Error Message -->
+                        <div class="error-message" id="errorMessage" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script src="main.js"></script>
