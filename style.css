@@ -1258,3 +1258,7 @@ body {
         padding: 15px;
     }
 }
+
+/* #TTS_VISIBILITY */
+.tts-section{display:none;}
+.tts-section.show{display:block;}

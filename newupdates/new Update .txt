@@ -1,62 +1,175 @@
+📂 Dosya Yapısı:
 
-###  Step-by-Step Tasks (Frontend + Backend Integration)
+SoundAurora/
+├── frontend/
+│ ├── index.html # Ana sayfa
+│ ├── style.css # Tema ve animasyonlar
+│ └── main.js # Etkileşimler ve API çağrıları
+└── backend/
+├── app/
+│ ├── main.py # FastAPI giriş noktası
+│ ├── tts_engine.py # OpenVoice + Piper TTS
+│ ├── stt_engine.py # Vosk STT
+│ ├── settings.py
+│ ├── models.py
+│ └── voice_registry.json
+├── requirements.txt
+├── Dockerfile
+└── docker-compose.yml
 
-1. **index.html**
+🔴 Neden Açılmıyor?
 
-   * In the `features` section, the **TTS card** already exists (`id="ttsBtn"`).
-   * Below it, add a new **TTS section** (`<section id="tts">`). Inside it include:
+Çünkü butona tıklayınca açılacak bir TTS sayfası HTML’de tanımlı değil, JS de sadece uyarı çıkarıyor. Bu yüzden sen ne kadar düzeltme yapsan da TTS ekranı hiç görünmez.
 
-     * Text input (textarea).
-     * Language selector (`select` → tr/en).
-     * Voice selector (`select` → will be filled via `/api/voices` call).
-     * Speed slider (`0.5 – 1.5`).
-     * Style selector (`neutral, happy, sad`).
-     * **Generate button**, and below it an audio player + download link for the result.
+✅ Kesin Çözüm
+index.html’e </main> kapanışından önce bir TTS section ekle (id="ttsSection").
+style.css’e .tts-section{display:none} + .tts-section.show{display:block} ekle.
+main.js’te handleFeatureClick('tts') kısmını değiştir → showTTSPage() fonksiyonu çağrılmalı.
+Bunu yapınca:
+TTS kartına tıklayınca ana içerik gizlenecek,
+#ttsSection bölümü açılacak,
+Metin girip tarayıcı TTS ile seslendirme yapılabilecek. 
 
-2. **style.css**
+---
 
-   * Add simple styles for the TTS form (container, label, input, button).
-   * Must remain responsive (mobile/desktop friendly).
+# 1) `index.html` — TTS bölümü EKLE
 
-3. **main.js**
+Bunu **`</main>` kapanışından ÖNCE** yapıştır (yoksa ekle, varsa tekrarlama):
 
-   * Add a new function: `initTTS()`.
+```html
+<!-- #TTS_SECTION_START -->
+<section id="ttsSection" class="tts-section" style="display:none;">
+  <div class="container" style="max-width:900px;margin:60px auto;">
+    <h2>Text-to-Speech (TTS)</h2>
 
-   * When `generateBtn` is clicked:
+    <label for="ttsText" style="display:block;margin:8px 0;">Text</label>
+    <textarea id="ttsText" rows="5" style="width:100%;padding:12px;border-radius:12px;"></textarea>
 
-     ```js
-     fetch('/api/tts/generate', {
-       method: 'POST',
-       headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({
-          text: textarea.value,
-          lang: langSelect.value,
-          voice_id: voiceSelect.value,
-          style: styleSelect.value,
-          speed: parseFloat(speedRange.value)
-       })
-     })
-     .then(res => res.blob())
-     .then(blob => { 
-        audio.src = URL.createObjectURL(blob); 
-        audio.play(); 
-     });
-     ```
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;">
+      <div>
+        <label for="ttsVoice">Voice</label>
+        <select id="ttsVoice" style="width:100%;padding:10px;border-radius:12px;"></select>
+      </div>
+      <div>
+        <label for="ttsRate">Rate (0.5–2)</label>
+        <input id="ttsRate" type="range" min="0.5" max="2" step="0.1" value="1" style="width:100%;">
+      </div>
+    </div>
 
-   * Also load voice list from `/api/voices` endpoint.
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+      <button id="ttsPlay" class="feature-btn">▶ Play</button>
+      <button id="ttsStop" class="feature-btn">■ Stop</button>
+      <button id="ttsBack" class="feature-btn">← Back</button>
+    </div>
+  </div>
+</section>
+<!-- #TTS_SECTION_END -->
+```
 
-4. **Backend (FastAPI /api/tts/generate)**
+---
 
-   * Already available in the docs: uses Piper + OpenVoice.
-   * Your VPS (SoundAurora-VPS) can run it on CPU (no GPU required).
-   * Use these free/open-license models:
+# 2) `style.css` — Görünürlük sınıfı EKLE
 
-     * **Turkish:** `tr_TR-fettah-medium` (CC0)
-     * **English:** `en_US-arctic-medium` (CMU Arctic)
+Dosyanın **sonuna** ekle:
 
-5. **Test & Verify**
+```css
+/* #TTS_VISIBILITY */
+.tts-section{display:none;}
+.tts-section.show{display:block;}
+```
 
-   * First, test with browser TTS (Web Speech API) fallback (no server required).
-   * Then test `/api/tts/generate` endpoint.
-   * Check that the audio plays and can be downloaded.
+---
 
+# 3) `main.js` — Yönlendirme ve TTS bağlama (KISA, ÇAKIŞMA YAPMAZ)
+
+### 3.a) “Tıkla → TTS’i aç” (mevcut handleFeatureClick’in EN BAŞINA koy)
+
+```js
+function handleFeatureClick(feature) {
+  if (feature === 'tts') { showTTSPage(); return; }
+  // ... senin mevcut coming-soon kodun burada kalacak ...
+```
+
+> Not: Sende aynı isimli fonksiyonlar çakışma yapmış. Bu yüzden **sadece** aşağıdaki 4 yardımcı fonksiyonu ekliyoruz; başka yere dokunmuyoruz.
+
+### 3.b) Bu 4 yardımcıyı dosyanın SONUNA ekle
+
+```js
+// #TTS_MINIMAL_HELPERS (conflict-safe - farklı isimler)
+let __ttsSec=null, __ttsEls=null;
+
+function __ttsInitOnce(){
+  if (__ttsSec) return;
+  __ttsSec = document.getElementById('ttsSection');
+  if (!__ttsSec) return;
+
+  __ttsEls = {
+    text:  document.getElementById('ttsText'),
+    voice: document.getElementById('ttsVoice'),
+    rate:  document.getElementById('ttsRate'),
+    play:  document.getElementById('ttsPlay'),
+    stop:  document.getElementById('ttsStop'),
+    back:  document.getElementById('ttsBack'),
+  };
+
+  // Voice listesi – tarayıcı TTS
+  if ('speechSynthesis' in window && __ttsEls.voice){
+    function loadVoices(){
+      const vs = speechSynthesis.getVoices()
+        .sort((a,b)=>a.lang.localeCompare(b.lang)||a.name.localeCompare(b.name));
+      __ttsEls.voice.innerHTML='';
+      vs.forEach(v=>{
+        const o=document.createElement('option');
+        o.value=v.name; o.textContent=`${v.name} (${v.lang})`;
+        __ttsEls.voice.appendChild(o);
+      });
+    }
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  // Butonlar
+  __ttsEls.play?.addEventListener('click', __ttsPlayBrowser);
+  __ttsEls.stop?.addEventListener('click', ()=>window.speechSynthesis?.cancel());
+  __ttsEls.back?.addEventListener('click', hideTTSPage);
+}
+
+function showTTSPage(){
+  __ttsInitOnce();
+  if (!__ttsSec) { console.error('TTS section not found'); return; }
+  if (typeof mainContent!=='undefined' && mainContent) mainContent.style.display='none';
+  __ttsSec.classList.add('show'); __ttsSec.style.display='block';
+}
+
+function hideTTSPage(){
+  if (__ttsSec){ __ttsSec.classList.remove('show'); __ttsSec.style.display='none'; }
+  if (typeof mainContent!=='undefined' && mainContent){
+    mainContent.style.display='block'; setTimeout(()=>mainContent.classList.add('show'),50);
+  }
+}
+
+function __ttsPlayBrowser(){
+  const txt = __ttsEls?.text?.value?.trim();
+  if (!txt || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(txt);
+  const vs = speechSynthesis.getVoices();
+  const chosen = vs.find(v=>v.name===__ttsEls.voice?.value);
+  if (chosen) u.voice = chosen;
+  u.rate = parseFloat(__ttsEls.rate?.value||'1');
+  speechSynthesis.speak(u);
+}
+```
+
+---
+
+## Kontrol Listesi (2 dakika)
+
+* Sayfayı **Ctrl+F5** ile sert yenile.
+* **Login → TTS kartı**na tıkla → **TTS bölümü** açılmalı.
+* Metin yaz → **Play** → tarayıcı sesi okumalı.
+* **Back** → ana menüye dönmeli.
+
+> Hâlâ açılmıyorsa: Tarayıcı konsolunda `TTS section not found` görürsen **index.html’deki `id="ttsSection"` bloğu eklenmemiş** demektir. Ekleyip yenile.
+
+Bu 3 yama, önceki “duplicate function” kaosuna girmeden TTS’i kesin açar.

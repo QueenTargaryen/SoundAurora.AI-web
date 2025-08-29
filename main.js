@@ -389,11 +389,8 @@ function initFeatureButtons() {
 }
 
 function handleFeatureClick(feature) {
-    // Handle TTS feature specially
-    if (feature === 'tts') {
-        showTTSPage();
-        return;
-    }
+    if (feature === 'tts') { showTTSPage(); return; }
+    console.log('handleFeatureClick called with:', feature);
     
     const messages = {
         tr: {
@@ -468,8 +465,12 @@ let currentAudioBlob = null;
 
 // TTS Functions
 function initTTS() {
+    console.log('initTTS called');
+    
     // Get TTS elements
     ttsSection = document.getElementById('tts');
+    console.log('ttsSection found:', ttsSection);
+    
     ttsElements = {
         backBtn: document.getElementById('backBtn'),
         textInput: document.getElementById('textInput'),
@@ -582,8 +583,20 @@ async function loadVoicesForLanguage() {
 }
 
 function showTTSPage() {
-    if (mainContent) mainContent.style.display = 'none';
-    if (ttsSection) ttsSection.style.display = 'block';
+    console.log('showTTSPage called');
+    console.log('mainContent:', mainContent);
+    console.log('ttsSection:', ttsSection);
+    
+    if (mainContent) {
+        mainContent.style.display = 'none';
+        console.log('mainContent hidden');
+    }
+    if (ttsSection) {
+        ttsSection.style.display = 'block';
+        console.log('ttsSection shown');
+    } else {
+        console.error('ttsSection not found!');
+    }
     
     // Reset form
     if (ttsElements.textInput) ttsElements.textInput.value = '';
@@ -751,103 +764,6 @@ function playAudioAgain() {
     }
 }
 
-async function generateWithServerTTS(formData) {
-    const response = await fetch('/api/tts/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-    });
-    
-    if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
-    }
-    
-    const blob = await response.blob();
-    currentAudioBlob = blob;
-    
-    const audioUrl = URL.createObjectURL(blob);
-    ttsElements.audioPlayer.src = audioUrl;
-    ttsElements.audioResult.style.display = 'block';
-    ttsElements.audioPlayer.play();
-}
-
-async function generateWithBrowserTTS(formData) {
-    return new Promise((resolve, reject) => {
-        if (!window.speechSynthesis) {
-            reject(new Error('Speech synthesis not supported'));
-            return;
-        }
-        
-        const utterance = new SpeechSynthesisUtterance(formData.text);
-        const voices = window.speechSynthesis.getVoices();
-        const selectedVoice = voices.find(v => v.name === formData.voice_id);
-        
-        if (selectedVoice) {
-            utterance.voice = selectedVoice;
-        }
-        
-        utterance.rate = formData.speed;
-        utterance.pitch = formData.style === 'happy' ? 1.2 : formData.style === 'sad' ? 0.8 : 1.0;
-        
-        utterance.onend = () => {
-            // For browser TTS, we can't get audio blob, so just show success message
-            ttsElements.audioResult.style.display = 'block';
-            ttsElements.audioPlayer.style.display = 'none';
-            ttsElements.downloadBtn.style.display = 'none';
-            resolve();
-        };
-        
-        utterance.onerror = (event) => {
-            reject(new Error('Speech synthesis failed: ' + event.error));
-        };
-        
-        window.speechSynthesis.speak(utterance);
-    });
-}
-
-function downloadAudio() {
-    if (!currentAudioBlob) {
-        showError('No audio to download.');
-        return;
-    }
-    
-    const url = URL.createObjectURL(currentAudioBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tts-audio-${Date.now()}.wav`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-function playAudioAgain() {
-    if (ttsElements.audioPlayer && ttsElements.audioPlayer.src) {
-        ttsElements.audioPlayer.currentTime = 0;
-        ttsElements.audioPlayer.play();
-    }
-}
-
-function setLoadingState(isLoading) {
-    if (ttsElements.generateBtn && ttsElements.generateText && ttsElements.spinner) {
-        ttsElements.generateBtn.disabled = isLoading;
-        ttsElements.generateText.textContent = isLoading ? 'Generating...' : 'Generate Audio';
-        ttsElements.spinner.style.display = isLoading ? 'inline-block' : 'none';
-    }
-}
-
-function showError(message) {
-    if (ttsElements.errorMessage) {
-        ttsElements.errorMessage.textContent = message;
-        ttsElements.errorMessage.style.display = 'block';
-    }
-}
-
-function hideError() {
-    if (ttsElements.errorMessage) {
-        ttsElements.errorMessage.style.display = 'none';
-    }
-}
 
 // Add shake animation CSS
 const shakeCSS = document.createElement('style');
@@ -859,3 +775,68 @@ shakeCSS.textContent = `
     }
 `;
 document.head.appendChild(shakeCSS);
+
+// #TTS_MINIMAL_HELPERS (conflict-safe - farklı isimler)
+let __ttsSec=null, __ttsEls=null;
+
+function __ttsInitOnce(){
+  if (__ttsSec) return;
+  __ttsSec = document.getElementById('ttsSection');
+  if (!__ttsSec) return;
+
+  __ttsEls = {
+    text:  document.getElementById('ttsText'),
+    voice: document.getElementById('ttsVoice'),
+    rate:  document.getElementById('ttsRate'),
+    play:  document.getElementById('ttsPlay'),
+    stop:  document.getElementById('ttsStop'),
+    back:  document.getElementById('ttsBack'),
+  };
+
+  // Voice listesi – tarayıcı TTS
+  if ('speechSynthesis' in window && __ttsEls.voice){
+    function loadVoices(){
+      const vs = speechSynthesis.getVoices()
+        .sort((a,b)=>a.lang.localeCompare(b.lang)||a.name.localeCompare(b.name));
+      __ttsEls.voice.innerHTML='';
+      vs.forEach(v=>{
+        const o=document.createElement('option');
+        o.value=v.name; o.textContent=`${v.name} (${v.lang})`;
+        __ttsEls.voice.appendChild(o);
+      });
+    }
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  // Butonlar
+  __ttsEls.play?.addEventListener('click', __ttsPlayBrowser);
+  __ttsEls.stop?.addEventListener('click', ()=>window.speechSynthesis?.cancel());
+  __ttsEls.back?.addEventListener('click', hideTTSPage);
+}
+
+function showTTSPage(){
+  __ttsInitOnce();
+  if (!__ttsSec) { console.error('TTS section not found'); return; }
+  if (typeof mainContent!=='undefined' && mainContent) mainContent.style.display='none';
+  __ttsSec.classList.add('show'); __ttsSec.style.display='block';
+}
+
+function hideTTSPage(){
+  if (__ttsSec){ __ttsSec.classList.remove('show'); __ttsSec.style.display='none'; }
+  if (typeof mainContent!=='undefined' && mainContent){
+    mainContent.style.display='block'; setTimeout(()=>mainContent.classList.add('show'),50);
+  }
+}
+
+function __ttsPlayBrowser(){
+  const txt = __ttsEls?.text?.value?.trim();
+  if (!txt || !('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(txt);
+  const vs = speechSynthesis.getVoices();
+  const chosen = vs.find(v=>v.name===__ttsEls.voice?.value);
+  if (chosen) u.voice = chosen;
+  u.rate = parseFloat(__ttsEls.rate?.value||'1');
+  speechSynthesis.speak(u);
+}
