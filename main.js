@@ -815,17 +815,52 @@ function __ttsInitOnce(){
   __ttsEls.back?.addEventListener('click', hideTTSPage);
 }
 
+// TTS sayfasını aç/kapat — ana içeriği değil, sadece "features"ı gizle
 function showTTSPage(){
   __ttsInitOnce();
   if (!__ttsSec) { console.error('TTS section not found'); return; }
-  if (typeof mainContent!=='undefined' && mainContent) mainContent.style.display='none';
-  __ttsSec.classList.add('show'); __ttsSec.style.display='block';
+
+  // Ana içerik açık kalsın
+  if (typeof mainContent !== 'undefined' && mainContent) {
+    mainContent.style.display = 'block';
+    mainContent.classList.add('show');
+  }
+
+  // Sadece özellikler gridini gizle
+  const features = document.getElementById('featuresSection') || document.querySelector('.features');
+  if (features) features.style.display = 'none';
+
+  // TTS bölümünü göster
+  __ttsSec.classList.add('show');
+  __ttsSec.style.display = 'block';
+
+  // İlk kez ses listesini dolduralım
+  if ('speechSynthesis' in window) {
+    const voices = speechSynthesis.getVoices();
+    if (!__ttsEls.voice?.options?.length && voices.length) {
+      __ttsEls.voice.innerHTML = '';
+      voices.sort((a,b)=>a.lang.localeCompare(b.lang)||a.name.localeCompare(b.name))
+            .forEach(v=>{
+              const o=document.createElement('option');
+              o.value=v.name; o.textContent=`${v.name} (${v.lang})`;
+              __ttsEls.voice.appendChild(o);
+            });
+    }
+  }
 }
 
 function hideTTSPage(){
+  // TTS bölümünü gizle
   if (__ttsSec){ __ttsSec.classList.remove('show'); __ttsSec.style.display='none'; }
-  if (typeof mainContent!=='undefined' && mainContent){
-    mainContent.style.display='block'; setTimeout(()=>mainContent.classList.add('show'),50);
+
+  // Özellikler gridini geri aç
+  const features = document.getElementById('featuresSection') || document.querySelector('.features');
+  if (features) features.style.display = 'block';
+
+  // Ana içerik zaten açık kalsın
+  if (typeof mainContent !== 'undefined' && mainContent) {
+    mainContent.style.display = 'block';
+    setTimeout(()=>mainContent.classList.add('show'), 50);
   }
 }
 
