@@ -1262,3 +1262,81 @@ body {
 /* #TTS_VISIBILITY */
 .tts-section{display:none;}
 .tts-section.show{display:block;}
+
+/* Segmented control (Kadın/Erkek) */
+.segmented {
+  display: inline-flex;
+  gap: 0;
+  border: 2px solid #FFD700;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255,215,0,0.08);
+}
+
+.segmented-btn {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: #FFD700;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.segmented-btn:not(.active):hover {
+  background: rgba(255,215,0,0.12);
+}
+
+.segmented-btn.active {
+  background: #FFD700;
+  color: #0a0a0a;
+}
+
+/* License Footer */
+.license-footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  position: relative;
+  margin-top: 40px;
+}
+
+.license-tooltip {
+  position: relative;
+  color: #FFD700;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tooltip-content {
+  visibility: hidden;
+  opacity: 0;
+  width: 260px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  text-align: left;
+  border-radius: 8px;
+  padding: 12px;
+  position: absolute;
+  left: 50%;
+  bottom: 125%;
+  transform: translateX(-50%);
+  z-index: 10;
+  transition: opacity 0.3s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.tooltip-content a {
+  color: #FFD700;
+  text-decoration: none;
+}
+
+.tooltip-content a:hover {
+  text-decoration: underline;
+}
+
+.license-tooltip:hover .tooltip-content {
+  visibility: visible;
+  opacity: 1;
+}

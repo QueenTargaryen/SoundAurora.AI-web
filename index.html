@@ -131,6 +131,12 @@
             <label for="ttsText" style="display:block;margin:8px 0;">Text</label>
             <textarea id="ttsText" rows="5" style="width:100%;padding:12px;border-radius:12px;"></textarea>
 
+            <!-- Gender segmented control -->
+            <div class="segmented" id="ttsGenderGroup" style="margin-bottom:10px;">
+              <button type="button" class="segmented-btn active" data-gender="female" id="genderFemale">Kadın</button>
+              <button type="button" class="segmented-btn" data-gender="male" id="genderMale">Erkek</button>
+            </div>
+
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;">
               <div>
                 <label for="ttsVoice">Voice</label>
@@ -150,6 +156,23 @@
           </div>
         </section>
         <!-- #TTS_SECTION_END -->
+
+        <!-- License Notice Footer -->
+        <footer class="license-footer">
+          <p>
+            <span id="licensePrefix">🔊 All voices are license-free —</span>
+            <span class="license-tooltip" id="licenseDetailsTrigger">
+              <span id="licenseDetails">Details</span>
+              <span class="tooltip-content">
+                <strong id="tooltipTitle">Open-source Projects & Model Licenses:</strong><br>
+                <a href="https://github.com/rhasspy/piper" target="_blank">Piper TTS (Apache-2.0)</a><br>
+                <a href="https://huggingface.co/rhasspy/piper-voices" target="_blank">Piper Voices Models</a><br>
+                <a href="https://github.com/myshell-ai/OpenVoice" target="_blank">OpenVoice (MIT)</a><br>
+                <a href="https://alphacephei.com/vosk/" target="_blank">Vosk STT (Apache-2.0)</a>
+              </span>
+            </span>
+          </p>
+        </footer>
     </main>
 
     <script src="main.js"></script>

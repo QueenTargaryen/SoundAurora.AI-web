@@ -1,175 +1,377 @@
-📂 Dosya Yapısı:
+# 🔧 SoundAurora — TTS “Cinsiyet Seçimi + Voice Filtreleme” Yaması
 
-SoundAurora/
-├── frontend/
-│ ├── index.html # Ana sayfa
-│ ├── style.css # Tema ve animasyonlar
-│ └── main.js # Etkileşimler ve API çağrıları
-└── backend/
-├── app/
-│ ├── main.py # FastAPI giriş noktası
-│ ├── tts_engine.py # OpenVoice + Piper TTS
-│ ├── stt_engine.py # Vosk STT
-│ ├── settings.py
-│ ├── models.py
-│ └── voice_registry.json
-├── requirements.txt
-├── Dockerfile
-└── docker-compose.yml
+> Uygulanacak dosyalar: `index.html`, `style.css`, `main.js`
+> Hedef: Kadın/Erkek iki tıklama seçeneği; seçime göre `Voice` listesi otomatik filtrelensin. Sağ üst **TR** dil butonu aynı kalsın.
 
-🔴 Neden Açılmıyor?
+## 1) `index.html` — TTS bölümüne cinsiyet seçici ekle
 
-Çünkü butona tıklayınca açılacak bir TTS sayfası HTML’de tanımlı değil, JS de sadece uyarı çıkarıyor. Bu yüzden sen ne kadar düzeltme yapsan da TTS ekranı hiç görünmez.
-
-✅ Kesin Çözüm
-index.html’e </main> kapanışından önce bir TTS section ekle (id="ttsSection").
-style.css’e .tts-section{display:none} + .tts-section.show{display:block} ekle.
-main.js’te handleFeatureClick('tts') kısmını değiştir → showTTSPage() fonksiyonu çağrılmalı.
-Bunu yapınca:
-TTS kartına tıklayınca ana içerik gizlenecek,
-#ttsSection bölümü açılacak,
-Metin girip tarayıcı TTS ile seslendirme yapılabilecek. 
-
----
-
-# 1) `index.html` — TTS bölümü EKLE
-
-Bunu **`</main>` kapanışından ÖNCE** yapıştır (yoksa ekle, varsa tekrarlama):
+**Bul:**
 
 ```html
-<!-- #TTS_SECTION_START -->
-<section id="ttsSection" class="tts-section" style="display:none;">
-  <div class="container" style="max-width:900px;margin:60px auto;">
-    <h2>Text-to-Speech (TTS)</h2>
-
-    <label for="ttsText" style="display:block;margin:8px 0;">Text</label>
-    <textarea id="ttsText" rows="5" style="width:100%;padding:12px;border-radius:12px;"></textarea>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;">
-      <div>
-        <label for="ttsVoice">Voice</label>
-        <select id="ttsVoice" style="width:100%;padding:10px;border-radius:12px;"></select>
-      </div>
-      <div>
-        <label for="ttsRate">Rate (0.5–2)</label>
-        <input id="ttsRate" type="range" min="0.5" max="2" step="0.1" value="1" style="width:100%;">
-      </div>
-    </div>
-
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
-      <button id="ttsPlay" class="feature-btn">▶ Play</button>
-      <button id="ttsStop" class="feature-btn">■ Stop</button>
-      <button id="ttsBack" class="feature-btn">← Back</button>
-    </div>
-  </div>
-</section>
-<!-- #TTS_SECTION_END -->
+<label for="ttsVoice">Voice</label>
+<select id="ttsVoice" style="width:100%;padding:10px;border-radius:12px;"></select>
 ```
+
+**Hemen ÜSTÜNE ekle (yeni “segmented” butonlar):**
+
+```html
+<!-- Gender segmented control -->
+<div class="segmented" id="ttsGenderGroup" style="margin-bottom:10px;">
+  <button type="button" class="segmented-btn active" data-gender="female" id="genderFemale">Kadın</button>
+  <button type="button" class="segmented-btn" data-gender="male" id="genderMale">Erkek</button>
+</div>
+```
+
+> Not: Mevcut `#ttsSection`, `#ttsVoice`, `#ttsRate`, `#ttsPlay`, `#ttsStop`, `#ttsBack` ID’lerine dokunma. Üstte sadece yeni bir `#ttsGenderGroup` eklendi.
 
 ---
 
-# 2) `style.css` — Görünürlük sınıfı EKLE
+## 2) `style.css` — segmented buton stili ekle
 
-Dosyanın **sonuna** ekle:
+**Dosyanın sonuna** şunu ekle (veya uygun bir yere; mevcut stillere çakışmaz):
 
 ```css
-/* #TTS_VISIBILITY */
-.tts-section{display:none;}
-.tts-section.show{display:block;}
+/* Segmented control (Kadın/Erkek) */
+.segmented {
+  display: inline-flex;
+  gap: 0;
+  border: 2px solid #FFD700;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255,215,0,0.08);
+}
+
+.segmented-btn {
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: #FFD700;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.segmented-btn:not(.active):hover {
+  background: rgba(255,215,0,0.12);
+}
+
+.segmented-btn.active {
+  background: #FFD700;
+  color: #0a0a0a;
+}
 ```
 
 ---
 
-# 3) `main.js` — Yönlendirme ve TTS bağlama (KISA, ÇAKIŞMA YAPMAZ)
+## 3) `main.js` — cinsiyet durumunu yönet ve Voice listesini filtrele
 
-### 3.a) “Tıkla → TTS’i aç” (mevcut handleFeatureClick’in EN BAŞINA koy)
+> Buradaki yama **mevcut TTS inisyalizasyonunu bozmuyor**. Sadece cinsiyeti tutuyor, `/api/voices` ve/veya tarayıcı seslerini **seçilen cinsiyete göre** süzüyor.
+
+### 3.1. En üste yakın bir yere (configlerin altı uygun) **ŞU sabitleri** ekle:
 
 ```js
-function handleFeatureClick(feature) {
-  if (feature === 'tts') { showTTSPage(); return; }
-  // ... senin mevcut coming-soon kodun burada kalacak ...
+// --- TTS gender support ---
+let selectedGender = 'female'; // default
+// Sunucu /api/voices cevabında gender yoksa isimden tahmin için ipucu tablosu:
+const VOICE_GENDER_HINTS = {
+  // örnek id/name kırpımları → 'female' | 'male'
+  'female': ['female','woman','salli','hazel','zoe','aria','jenny','emma','natasha','susan'],
+  'male':   ['male','man','tom','guy','daniel','matthew','george','al','adam','guy','tolga']
+};
+function guessGenderByName(name='') {
+  const n = name.toLowerCase();
+  if (VOICE_GENDER_HINTS.female.some(k=>n.includes(k))) return 'female';
+  if (VOICE_GENDER_HINTS.male.some(k=>n.includes(k))) return 'male';
+  return 'unknown';
+}
 ```
 
-> Not: Sende aynı isimli fonksiyonlar çakışma yapmış. Bu yüzden **sadece** aşağıdaki 4 yardımcı fonksiyonu ekliyoruz; başka yere dokunmuyoruz.
+### 3.2. TTS elementlerini topladığın yerde **yeni DOM’ları ekle**
 
-### 3.b) Bu 4 yardımcıyı dosyanın SONUNA ekle
+(TTS init bloğunda `ttsElements = { ... }` objesine şu ikisini ekle):
 
 ```js
-// #TTS_MINIMAL_HELPERS (conflict-safe - farklı isimler)
-let __ttsSec=null, __ttsEls=null;
+genderGroup: document.getElementById('ttsGenderGroup'),
+genderFemaleBtn: document.getElementById('genderFemale'),
+genderMaleBtn: document.getElementById('genderMale'),
+```
 
-function __ttsInitOnce(){
-  if (__ttsSec) return;
-  __ttsSec = document.getElementById('ttsSection');
-  if (!__ttsSec) return;
+### 3.3. TTS init içinde **event listener** bağla:
 
-  __ttsEls = {
-    text:  document.getElementById('ttsText'),
-    voice: document.getElementById('ttsVoice'),
-    rate:  document.getElementById('ttsRate'),
-    play:  document.getElementById('ttsPlay'),
-    stop:  document.getElementById('ttsStop'),
-    back:  document.getElementById('ttsBack'),
+```js
+if (ttsElements.genderFemaleBtn && ttsElements.genderMaleBtn) {
+  const onGenderClick = (g) => {
+    selectedGender = g;                      // state güncelle
+    // buton aktiflikleri
+    ttsElements.genderFemaleBtn.classList.toggle('active', g==='female');
+    ttsElements.genderMaleBtn.classList.toggle('active', g==='male');
+    // Voice listesini yeniden yükle/filtrele
+    populateVoiceSelect();
   };
+  ttsElements.genderFemaleBtn.addEventListener('click', ()=> onGenderClick('female'));
+  ttsElements.genderMaleBtn.addEventListener('click',   ()=> onGenderClick('male'));
+}
+```
 
-  // Voice listesi – tarayıcı TTS
-  if ('speechSynthesis' in window && __ttsEls.voice){
-    function loadVoices(){
-      const vs = speechSynthesis.getVoices()
-        .sort((a,b)=>a.lang.localeCompare(b.lang)||a.name.localeCompare(b.name));
-      __ttsEls.voice.innerHTML='';
-      vs.forEach(v=>{
-        const o=document.createElement('option');
-        o.value=v.name; o.textContent=`${v.name} (${v.lang})`;
-        __ttsEls.voice.appendChild(o);
+### 3.4. `loadVoicesForLanguage()` fonksiyonunu **iki aşamalı** hale getir:
+
+* Aşama-1: Sunucudan (`/api/voices`) çek. Gelen objelerde `gender` varsa kullan.
+* Aşama-2: Tarayıcı seslerini eklerken `guessGenderByName()` ile etiketle.
+* Ardından **tek bir yerden** select’i doldur: `populateVoiceSelect()`.
+
+**Mevcut `loadVoicesForLanguage` fonksiyonunu ŞU sürümle değiştir:**
+
+```js
+async function loadVoicesForLanguage() {
+  if (!ttsElements.voiceSelect) return;
+
+  const selectedLang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
+  ttsElements.voiceSelect.innerHTML = '<option value="">Loading voices...</option>';
+  availableVoices = [];
+
+  // 1) Sunucu sesleri
+  try {
+    const res = await fetch('/api/voices');
+    if (res.ok) {
+      const serverVoices = await res.json(); // {id, name, language, ...[gender?]}
+      serverVoices.forEach(v => {
+        if (!v.language) return;
+        if (v.language.toLowerCase().startsWith(selectedLang.toLowerCase())) {
+          availableVoices.push({
+            id: v.id,
+            name: v.name,
+            language: v.language,
+            gender: v.gender || guessGenderByName(v.name),
+            engine: 'server'
+          });
+        }
       });
     }
-    loadVoices();
-    speechSynthesis.onvoiceschanged = loadVoices;
+  } catch(e) {
+    console.log('Server voices not available:', e);
   }
 
-  // Butonlar
-  __ttsEls.play?.addEventListener('click', __ttsPlayBrowser);
-  __ttsEls.stop?.addEventListener('click', ()=>window.speechSynthesis?.cancel());
-  __ttsEls.back?.addEventListener('click', hideTTSPage);
-}
-
-function showTTSPage(){
-  __ttsInitOnce();
-  if (!__ttsSec) { console.error('TTS section not found'); return; }
-  if (typeof mainContent!=='undefined' && mainContent) mainContent.style.display='none';
-  __ttsSec.classList.add('show'); __ttsSec.style.display='block';
-}
-
-function hideTTSPage(){
-  if (__ttsSec){ __ttsSec.classList.remove('show'); __ttsSec.style.display='none'; }
-  if (typeof mainContent!=='undefined' && mainContent){
-    mainContent.style.display='block'; setTimeout(()=>mainContent.classList.add('show'),50);
+  // 2) Tarayıcı fallback sesleri (isteğe bağlı)
+  try {
+    const browserVoices = speechSynthesis.getVoices();
+    browserVoices.forEach(bv => {
+      const lang = (bv.lang || '').toLowerCase();
+      const ok =
+        (selectedLang === 'tr' && lang.includes('tr')) ||
+        (selectedLang === 'en' && lang.includes('en'));
+      if (ok) {
+        availableVoices.push({
+          id: bv.name,
+          name: `${bv.name} (Browser)`,
+          language: selectedLang,
+          gender: guessGenderByName(bv.name),
+          engine: 'browser',
+          browserVoice: bv
+        });
+      }
+    });
+  } catch(e) {
+    console.log('Browser voices load error:', e);
   }
+
+  // 3) UI'yi güncelle
+  populateVoiceSelect();
+}
+```
+
+### 3.5. **Yeni yardımcı:** `populateVoiceSelect()` ekle
+
+(Bu fonksiyon **seçili cinsiyete göre** `availableVoices` listesini süzer, select’i doldurur.)
+
+```js
+function populateVoiceSelect() {
+  if (!ttsElements.voiceSelect) return;
+
+  // Filtre: seçili cinsiyet
+  const filtered = availableVoices.filter(v => {
+    if (!selectedGender || selectedGender==='unknown') return true;
+    return (v.gender || 'unknown') === selectedGender;
+  });
+
+  // Hiç yoksa “No voices” göster
+  if (!filtered.length) {
+    ttsElements.voiceSelect.innerHTML = '<option value="">No voices available for this gender</option>';
+    return;
+  }
+
+  // Doldur
+  ttsElements.voiceSelect.innerHTML = '';
+  filtered.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v.id;
+    o.textContent = v.name;
+    ttsElements.voiceSelect.appendChild(o);
+  });
+
+  // Varsayılanı ilk elemana ata
+  ttsElements.voiceSelect.value = filtered[0].id;
+}
+```
+
+### 3.6. **Tarayıcı TTS kullanımında** seçilen voice’ı bulurken mevcut mantığı bozma
+
+(Eğer zaten `generateWithBrowserTTS` içinde `const selectedVoice = voices.find(v => v.name === formData.voice_id);` kullanıyorsan aynen kalsın — biz select’e sadece uygunları koyduğumuz için doğru ses gelecek.)
+
+---
+
+## 4) Dil düğmesi (sağ üst TR) — değişiklik YOK
+
+* `#langToggle` mevcut davranışıyla kalacak.
+* Cinsiyet seçimi ve voice filtreleme, dil toggling ile **çakışmaz** (fonksiyonlar ayrı).
+* `loadVoicesForLanguage()` zaten dil değişince yeniden çağrılıyor (çağrılmıyorsa, `toggleLanguage()` sonunda bir kere çağır).
+
+---
+
+* Sağ üstteki düğme **“yapacağı dili”** yazar.
+
+  * Düğmede **TR** yazıyorsa: Site şu an **İngilizce**’dir; tıklayınca **Türkçe**ye geçer ve düğme metni **EN** olur.
+  * Düğmede **EN** yazıyorsa: Site şu an **Türkçe**’dir; tıklayınca **İngilizce**ye geçer ve düğme metni **TR** olur.
+
+Bu davranış zaten kodda var:
+
+* `toggleLanguage()` dili `en ↔ tr` değiştirir ve `updateLanguageDisplay()` çağrılır.
+* `updateLanguageDisplay()` menüdeki tüm metinleri anında o dile çevirir ve düğme metnini şu kuralla ayarlar:
+  `currentLang === 'tr' ? 'EN' : 'TR'` (yani “bir sonraki dil” yazsın).
+
+### 5) Ses listesiyle ilişki 
+
+UI dilini değiştirince TTS’teki ses listesini de yeniden yüklemek istersen, `toggleLanguage()` fonksiyonunun **sonuna** 1 satır ekleyebilirsin:
+
+```js
+function toggleLanguage() {
+  currentLang = currentLang === 'tr' ? 'en' : 'tr';
+  localStorage.setItem('sa.lang', currentLang);
+  updateLanguageDisplay();
+
+  // İSTEĞE BAĞLI: UI dili değişince voice listesini tazele
+  if (typeof loadVoicesForLanguage === 'function') loadVoicesForLanguage();
+}
+```
+Ek Not: loadVoicesForLanguage()’da dil kaynağı currentLang olsun:
+const selectedLang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
+
+Anladım 👍 Şimdi bu bölümü **tam ve güncel şekilde** toparlıyorum:
+Hem **İngilizce** hem **Türkçe**, TR/EN butonuyla uyumlu, ayrıca **model lisans linkleri** de dahil olacak.
+
+---
+
+## 6) Kullanılan seslerin free olduklarını kanıtlayan linkler (EN + TR)
+
+### 6.1) `index.html` → `<main>` kapanışından hemen önce ekle
+
+```html
+<!-- License Notice Footer -->
+<footer class="license-footer">
+  <p>
+    <span id="licensePrefix">🔊 All voices are license-free —</span>
+    <span class="license-tooltip" id="licenseDetailsTrigger">
+      <span id="licenseDetails">Details</span>
+      <span class="tooltip-content">
+        <strong id="tooltipTitle">Open-source Projects & Model Licenses:</strong><br>
+        <a href="https://github.com/rhasspy/piper" target="_blank">Piper TTS (Apache-2.0)</a><br>
+        <a href="https://huggingface.co/rhasspy/piper-voices" target="_blank">Piper Voices Models</a><br>
+        <a href="https://github.com/myshell-ai/OpenVoice" target="_blank">OpenVoice (MIT)</a><br>
+        <a href="https://alphacephei.com/vosk/" target="_blank">Vosk STT (Apache-2.0)</a>
+      </span>
+    </span>
+  </p>
+</footer>
+```
+
+---
+
+### 6.2) `style.css` → dosyanın sonuna ekle
+
+```css
+/* License Footer */
+.license-footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  position: relative;
+  margin-top: 40px;
 }
 
-function __ttsPlayBrowser(){
-  const txt = __ttsEls?.text?.value?.trim();
-  if (!txt || !('speechSynthesis' in window)) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(txt);
-  const vs = speechSynthesis.getVoices();
-  const chosen = vs.find(v=>v.name===__ttsEls.voice?.value);
-  if (chosen) u.voice = chosen;
-  u.rate = parseFloat(__ttsEls.rate?.value||'1');
-  speechSynthesis.speak(u);
+.license-tooltip {
+  position: relative;
+  color: #FFD700;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tooltip-content {
+  visibility: hidden;
+  opacity: 0;
+  width: 260px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  text-align: left;
+  border-radius: 8px;
+  padding: 12px;
+  position: absolute;
+  left: 50%;
+  bottom: 125%;
+  transform: translateX(-50%);
+  z-index: 10;
+  transition: opacity 0.3s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.tooltip-content a {
+  color: #FFD700;
+  text-decoration: none;
+}
+
+.tooltip-content a:hover {
+  text-decoration: underline;
+}
+
+.license-tooltip:hover .tooltip-content {
+  visibility: visible;
+  opacity: 1;
 }
 ```
 
 ---
 
-## Kontrol Listesi (2 dakika)
+### 6.3) `main.js` → `updateLanguageDisplay()` içine ekle
 
-* Sayfayı **Ctrl+F5** ile sert yenile.
-* **Login → TTS kartı**na tıkla → **TTS bölümü** açılmalı.
-* Metin yaz → **Play** → tarayıcı sesi okumalı.
-* **Back** → ana menüye dönmeli.
+(Bu blok diğer metinleri güncelledikten sonra çalışacak.)
 
-> Hâlâ açılmıyorsa: Tarayıcı konsolunda `TTS section not found` görürsen **index.html’deki `id="ttsSection"` bloğu eklenmemiş** demektir. Ekleyip yenile.
+```js
+// Footer i18n (license notice)
+const lp = document.getElementById('licensePrefix');
+const ld = document.getElementById('licenseDetails');
+const tt = document.getElementById('tooltipTitle');
 
-Bu 3 yama, önceki “duplicate function” kaosuna girmeden TTS’i kesin açar.
+if (lp && ld && tt) {
+  if (currentLang === 'tr') {
+    lp.textContent = '🔊 Tüm sesler lisans gerektirmez —';
+    ld.textContent = 'Detaylar';
+    tt.textContent = 'Kullanılan Açık Kaynak Projeler ve Model Lisansları:';
+  } else {
+    lp.textContent = '🔊 All voices are license-free —';
+    ld.textContent = 'Details';
+    tt.textContent = 'Open-source Projects & Model Licenses:';
+  }
+}
+```
+
+---
+
+### ✅ Sonuç
+
+* **Varsayılan (EN):** “🔊 All voices are license-free — Details”
+* **TR’ye geçince:** “🔊 Tüm sesler lisans gerektirmez — Detaylar”
+* Tooltip içinde **Piper TTS, Piper Voices Models, OpenVoice, Vosk STT** lisans linkleri gösterilir.
+* Tüm linkler resmi GitHub / HuggingFace / Vosk sayfalarına gider, böylece **kanıt niteliği taşıyan kaynak** gösterilmiş olur.
+
+---
+
+

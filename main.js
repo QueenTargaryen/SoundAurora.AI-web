@@ -115,6 +115,21 @@ const LANG_DATA = {
 let currentLang = CONFIG.DEFAULT_LANG;
 let introTimer = null;
 
+// --- TTS gender support ---
+let selectedGender = 'female'; // default
+// Sunucu /api/voices cevabında gender yoksa isimden tahmin için ipucu tablosu:
+const VOICE_GENDER_HINTS = {
+  // örnek id/name kırpımları → 'female' | 'male'
+  'female': ['female','woman','salli','hazel','zoe','aria','jenny','emma','natasha','susan'],
+  'male':   ['male','man','tom','guy','daniel','matthew','george','al','adam','guy','tolga']
+};
+function guessGenderByName(name='') {
+  const n = name.toLowerCase();
+  if (VOICE_GENDER_HINTS.female.some(k=>n.includes(k))) return 'female';
+  if (VOICE_GENDER_HINTS.male.some(k=>n.includes(k))) return 'male';
+  return 'unknown';
+}
+
 // DOM Elements
 let introOverlay, loginModal, mainContent, langToggle, skipBtn, loginForm, passwordInput, errorMsg;
 
@@ -152,6 +167,9 @@ function toggleLanguage() {
     currentLang = currentLang === 'tr' ? 'en' : 'tr';
     localStorage.setItem('sa.lang', currentLang);
     updateLanguageDisplay();
+
+    // İSTEĞE BAĞLI: UI dili değişince voice listesini tazele
+    if (typeof loadVoicesForLanguage === 'function') loadVoicesForLanguage();
 }
 
 function updateLanguageDisplay() {
@@ -210,6 +228,23 @@ function updateLanguageDisplay() {
         updateFeatureCard('podcast', data.main.podcast);
         updateFeatureCard('aibook', data.main.aibook);
         updateFeatureCard('soon', data.main.soon);
+    }
+
+    // Footer i18n (license notice)
+    const lp = document.getElementById('licensePrefix');
+    const ld = document.getElementById('licenseDetails');
+    const tt = document.getElementById('tooltipTitle');
+
+    if (lp && ld && tt) {
+      if (currentLang === 'tr') {
+        lp.textContent = '🔊 Tüm sesler lisans gerektirmez —';
+        ld.textContent = 'Detaylar';
+        tt.textContent = 'Kullanılan Açık Kaynak Projeler ve Model Lisansları:';
+      } else {
+        lp.textContent = '🔊 All voices are license-free —';
+        ld.textContent = 'Details';
+        tt.textContent = 'Open-source Projects & Model Licenses:';
+      }
     }
 }
 
@@ -487,7 +522,11 @@ function initTTS() {
         audioPlayer: document.getElementById('audioPlayer'),
         downloadBtn: document.getElementById('downloadBtn'),
         playAgainBtn: document.getElementById('playAgainBtn'),
-        errorMessage: document.getElementById('errorMessage')
+        errorMessage: document.getElementById('errorMessage'),
+        genderGroup: document.getElementById('ttsGenderGroup'),
+        genderFemaleBtn: document.getElementById('genderFemale'),
+        genderMaleBtn: document.getElementById('genderMale'),
+        voiceSelect: document.getElementById('ttsVoice')
     };
 
     // Initialize TTS event listeners
@@ -525,61 +564,106 @@ function initTTS() {
         ttsElements.playAgainBtn.addEventListener('click', playAudioAgain);
     }
 
+    // Gender selection event listeners
+    if (ttsElements.genderFemaleBtn && ttsElements.genderMaleBtn) {
+      const onGenderClick = (g) => {
+        selectedGender = g;                      // state güncelle
+        // buton aktiflikleri
+        ttsElements.genderFemaleBtn.classList.toggle('active', g==='female');
+        ttsElements.genderMaleBtn.classList.toggle('active', g==='male');
+        // Voice listesini yeniden yükle/filtrele
+        populateVoiceSelect();
+      };
+      ttsElements.genderFemaleBtn.addEventListener('click', ()=> onGenderClick('female'));
+      ttsElements.genderMaleBtn.addEventListener('click',   ()=> onGenderClick('male'));
+    }
+
     // Load initial voices
     loadVoicesForLanguage();
 }
 
 async function loadVoicesForLanguage() {
-    if (!ttsElements.voiceSelect) return;
-    
-    const selectedLang = ttsElements.langSelect?.value || 'en';
-    ttsElements.voiceSelect.innerHTML = '<option value="">Loading voices...</option>';
-    
-    try {
-        // First try to load voices from server API
-        const response = await fetch('/api/voices');
-        if (response.ok) {
-            const serverVoices = await response.json();
-            availableVoices = serverVoices.filter(voice => voice.language === selectedLang);
-        } else {
-            throw new Error('Server voices not available');
+  if (!ttsElements.voiceSelect) return;
+
+  const selectedLang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
+  ttsElements.voiceSelect.innerHTML = '<option value="">Loading voices...</option>';
+  availableVoices = [];
+
+  // 1) Sunucu sesleri
+  try {
+    const res = await fetch('/api/voices');
+    if (res.ok) {
+      const serverVoices = await res.json(); // {id, name, language, ...[gender?]}
+      serverVoices.forEach(v => {
+        if (!v.language) return;
+        if (v.language.toLowerCase().startsWith(selectedLang.toLowerCase())) {
+          availableVoices.push({
+            id: v.id,
+            name: v.name,
+            language: v.language,
+            gender: v.gender || guessGenderByName(v.name),
+            engine: 'server'
+          });
         }
-    } catch (error) {
-        console.log('Server voices not available, using browser voices');
-        availableVoices = [];
+      });
     }
-    
-    // Load browser voices as fallback/additional options
+  } catch(e) {
+    console.log('Server voices not available:', e);
+  }
+
+  // 2) Tarayıcı fallback sesleri (isteğe bağlı)
+  try {
     const browserVoices = speechSynthesis.getVoices();
-    const filteredBrowserVoices = browserVoices.filter(voice => {
-        const voiceLang = voice.lang.toLowerCase();
-        return (selectedLang === 'tr' && voiceLang.includes('tr')) || 
-               (selectedLang === 'en' && voiceLang.includes('en'));
-    });
-    
-    // Add browser voices with special marking
-    filteredBrowserVoices.forEach(voice => {
+    browserVoices.forEach(bv => {
+      const lang = (bv.lang || '').toLowerCase();
+      const ok =
+        (selectedLang === 'tr' && lang.includes('tr')) ||
+        (selectedLang === 'en' && lang.includes('en'));
+      if (ok) {
         availableVoices.push({
-            id: voice.name,
-            name: voice.name + ' (Browser)',
-            language: selectedLang,
-            browserVoice: voice
+          id: bv.name,
+          name: `${bv.name} (Browser)`,
+          language: selectedLang,
+          gender: guessGenderByName(bv.name),
+          engine: 'browser',
+          browserVoice: bv
         });
+      }
     });
-    
-    // Populate voice selector
-    if (availableVoices.length === 0) {
-        ttsElements.voiceSelect.innerHTML = '<option value="">No voices available</option>';
-        return;
-    }
-    
-    ttsElements.voiceSelect.innerHTML = '';
-    availableVoices.forEach(voice => {
-        const option = document.createElement('option');
-        option.value = voice.id;
-        option.textContent = voice.name;
-        ttsElements.voiceSelect.appendChild(option);
-    });
+  } catch(e) {
+    console.log('Browser voices load error:', e);
+  }
+
+  // 3) UI'yi güncelle
+  populateVoiceSelect();
+}
+
+function populateVoiceSelect() {
+  if (!ttsElements.voiceSelect) return;
+
+  // Filtre: seçili cinsiyet
+  const filtered = availableVoices.filter(v => {
+    if (!selectedGender || selectedGender==='unknown') return true;
+    return (v.gender || 'unknown') === selectedGender;
+  });
+
+  // Hiç yoksa "No voices" göster
+  if (!filtered.length) {
+    ttsElements.voiceSelect.innerHTML = '<option value="">No voices available for this gender</option>';
+    return;
+  }
+
+  // Doldur
+  ttsElements.voiceSelect.innerHTML = '';
+  filtered.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v.id;
+    o.textContent = v.name;
+    ttsElements.voiceSelect.appendChild(o);
+  });
+
+  // Varsayılanı ilk elemana ata
+  ttsElements.voiceSelect.value = filtered[0].id;
 }
 
 function showTTSPage() {
