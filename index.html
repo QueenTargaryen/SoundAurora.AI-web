@@ -133,8 +133,8 @@
 
             <!-- Gender segmented control -->
             <div class="segmented" id="ttsGenderGroup" style="margin-bottom:10px;">
-              <button type="button" class="segmented-btn active" data-gender="female" id="genderFemale">Kadın</button>
-              <button type="button" class="segmented-btn" data-gender="male" id="genderMale">Erkek</button>
+              <button type="button" class="segmented-btn active" data-gender="male" id="genderMale">Erkek</button>
+              <button type="button" class="segmented-btn" data-gender="female" id="genderFemale">Kadın</button>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;">
@@ -144,13 +144,14 @@
               </div>
               <div>
                 <label for="ttsRate">Rate (0.5–2)</label>
-                <input id="ttsRate" type="range" min="0.5" max="2" step="0.1" value="1" style="width:100%;">
+                <input id="ttsRate" type="range" min="0.5" max="2" step="0.05" value="0.97" style="width:100%;">
               </div>
             </div>
 
             <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
               <button id="ttsPlay" class="feature-btn">▶ Play</button>
               <button id="ttsStop" class="feature-btn">■ Stop</button>
+              <button id="ttsDownload" class="feature-btn" style="display:none;">📥 Download</button>
               <button id="ttsBack" class="feature-btn">← Back</button>
             </div>
           </div>
@@ -165,10 +166,10 @@
               <span id="licenseDetails">Details</span>
               <span class="tooltip-content">
                 <strong id="tooltipTitle">Open-source Projects & Model Licenses:</strong><br>
-                <a href="https://github.com/rhasspy/piper" target="_blank">Piper TTS (Apache-2.0)</a><br>
-                <a href="https://huggingface.co/rhasspy/piper-voices" target="_blank">Piper Voices Models</a><br>
-                <a href="https://github.com/myshell-ai/OpenVoice" target="_blank">OpenVoice (MIT)</a><br>
-                <a href="https://alphacephei.com/vosk/" target="_blank">Vosk STT (Apache-2.0)</a>
+                <a href="https://github.com/rhasspy/piper" target="_blank" rel="noopener">Piper TTS (Apache-2.0)</a><br>
+                <a href="https://huggingface.co/rhasspy/piper-voices" target="_blank" rel="noopener">Piper Voices Models</a><br>
+                <a href="https://github.com/myshell-ai/OpenVoice" target="_blank" rel="noopener">OpenVoice (MIT)</a><br>
+                <a href="https://alphacephei.com/vosk/" target="_blank" rel="noopener">Vosk STT (Apache-2.0)</a>
               </span>
             </span>
           </p>

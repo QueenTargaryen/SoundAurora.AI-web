@@ -1340,3 +1340,57 @@ body {
   visibility: visible;
   opacity: 1;
 }
+
+/* Responsive TTS Controls */
+@media (max-width: 768px) {
+  .segmented {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .segmented-btn {
+    flex: 1;
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+  
+  /* TTS action buttons stack vertically */
+  #ttsSection .container > div[style*="display:flex"] {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  #ttsSection .feature-btn {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .segmented-btn {
+    padding: 10px 6px;
+    font-size: 13px;
+  }
+  
+  .tooltip-content {
+    width: 220px !important;
+    font-size: 0.85rem;
+    padding: 10px;
+  }
+}
+
+/* Focus and hover accessibility */
+.segmented-btn:focus {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}
+
+.feature-btn:focus {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}
+
+#ttsDownload:focus {
+  outline: 2px solid #FFD700;
+  outline-offset: 2px;
+}

@@ -116,7 +116,7 @@ let currentLang = CONFIG.DEFAULT_LANG;
 let introTimer = null;
 
 // --- TTS gender support ---
-let selectedGender = 'female'; // default
+let selectedGender = 'male'; // default
 // Sunucu /api/voices cevabında gender yoksa isimden tahmin için ipucu tablosu:
 const VOICE_GENDER_HINTS = {
   // örnek id/name kırpımları → 'female' | 'male'
@@ -167,9 +167,9 @@ function toggleLanguage() {
     currentLang = currentLang === 'tr' ? 'en' : 'tr';
     localStorage.setItem('sa.lang', currentLang);
     updateLanguageDisplay();
-
-    // İSTEĞE BAĞLI: UI dili değişince voice listesini tazele
-    if (typeof loadVoicesForLanguage === 'function') loadVoicesForLanguage();
+    
+    // Ses listesini resetleme - sadece UI metinlerini güncelle
+    // loadVoicesForLanguage() çağırmıyoruz
 }
 
 function updateLanguageDisplay() {
@@ -244,6 +244,23 @@ function updateLanguageDisplay() {
         lp.textContent = '🔊 All voices are license-free —';
         ld.textContent = 'Details';
         tt.textContent = 'Open-source Projects & Model Licenses:';
+      }
+    }
+    
+    // Gender buttons i18n
+    const maleBtn = document.getElementById('genderMale');
+    const femaleBtn = document.getElementById('genderFemale');
+    const downloadBtn = document.getElementById('ttsDownload');
+    
+    if (maleBtn && femaleBtn) {
+      if (currentLang === 'tr') {
+        maleBtn.textContent = 'Erkek';
+        femaleBtn.textContent = 'Kadın';
+        if (downloadBtn) downloadBtn.textContent = '📥 İndir';
+      } else {
+        maleBtn.textContent = 'Male';
+        femaleBtn.textContent = 'Female';
+        if (downloadBtn) downloadBtn.textContent = '📥 Download';
       }
     }
 }
@@ -520,13 +537,13 @@ function initTTS() {
         spinner: document.getElementById('spinner'),
         audioResult: document.getElementById('audioResult'),
         audioPlayer: document.getElementById('audioPlayer'),
-        downloadBtn: document.getElementById('downloadBtn'),
         playAgainBtn: document.getElementById('playAgainBtn'),
         errorMessage: document.getElementById('errorMessage'),
         genderGroup: document.getElementById('ttsGenderGroup'),
         genderFemaleBtn: document.getElementById('genderFemale'),
         genderMaleBtn: document.getElementById('genderMale'),
-        voiceSelect: document.getElementById('ttsVoice')
+        voiceSelect: document.getElementById('ttsVoice'),
+        downloadBtn: document.getElementById('ttsDownload')
     };
 
     // Initialize TTS event listeners
@@ -576,6 +593,10 @@ function initTTS() {
       };
       ttsElements.genderFemaleBtn.addEventListener('click', ()=> onGenderClick('female'));
       ttsElements.genderMaleBtn.addEventListener('click',   ()=> onGenderClick('male'));
+      
+      // Set initial state - Male active
+      ttsElements.genderMaleBtn.classList.add('active');
+      ttsElements.genderFemaleBtn.classList.remove('active');
     }
 
     // Load initial voices
@@ -585,21 +606,19 @@ function initTTS() {
 async function loadVoicesForLanguage() {
   if (!ttsElements.voiceSelect) return;
 
-  const selectedLang = (typeof currentLang !== 'undefined' ? currentLang : 'en');
   ttsElements.voiceSelect.innerHTML = '<option value="">Loading voices...</option>';
   availableVoices = [];
 
-  // 1) Sunucu sesleri
+  // 1) Sunucu sesleri - TÜM DİLLER
   try {
     const res = await fetch('/api/voices');
     if (res.ok) {
       const serverVoices = await res.json(); // {id, name, language, ...[gender?]}
       serverVoices.forEach(v => {
-        if (!v.language) return;
-        if (v.language.toLowerCase().startsWith(selectedLang.toLowerCase())) {
+        if (v.name && v.language) { // Sadece geçerli ses verisi
           availableVoices.push({
             id: v.id,
-            name: v.name,
+            name: `${v.name} (${v.language})`, // Dil kodunu göster
             language: v.language,
             gender: v.gender || guessGenderByName(v.name),
             engine: 'server'
@@ -611,19 +630,15 @@ async function loadVoicesForLanguage() {
     console.log('Server voices not available:', e);
   }
 
-  // 2) Tarayıcı fallback sesleri (isteğe bağlı)
+  // 2) Tarayıcı sesleri - TÜM DİLLER
   try {
     const browserVoices = speechSynthesis.getVoices();
     browserVoices.forEach(bv => {
-      const lang = (bv.lang || '').toLowerCase();
-      const ok =
-        (selectedLang === 'tr' && lang.includes('tr')) ||
-        (selectedLang === 'en' && lang.includes('en'));
-      if (ok) {
+      if (bv.name && bv.lang) { // Sadece geçerli ses verisi
         availableVoices.push({
           id: bv.name,
-          name: `${bv.name} (Browser)`,
-          language: selectedLang,
+          name: `${bv.name} (${bv.lang})`, // Dil kodunu göster
+          language: bv.lang,
           gender: guessGenderByName(bv.name),
           engine: 'browser',
           browserVoice: bv
@@ -761,6 +776,11 @@ async function generateWithServerTTS(formData) {
         ttsElements.audioPlayer.src = audioUrl;
         ttsElements.audioResult.style.display = 'block';
         
+        // Show download button for server TTS
+        if (ttsElements.downloadBtn) {
+            ttsElements.downloadBtn.style.display = 'inline-block';
+        }
+        
         // Auto-play the generated audio
         await ttsElements.audioPlayer.play();
         
@@ -789,11 +809,15 @@ async function generateWithBrowserTTS(formData) {
         }
         
         utterance.rate = formData.speed;
-        utterance.pitch = 1.0;
+        utterance.pitch = 1.05; // Robotic effect azaltmak için
         utterance.volume = 1.0;
 
         utterance.onend = () => {
             ttsElements.audioResult.style.display = 'block';
+            // Hide download button for browser TTS
+            if (ttsElements.downloadBtn) {
+                ttsElements.downloadBtn.style.display = 'none';
+            }
             resolve();
         };
 
@@ -831,7 +855,7 @@ function downloadAudio() {
         const url = URL.createObjectURL(currentAudioBlob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'soundaurora_tts_' + Date.now() + '.mp3';
+        a.download = 'soundaurora-tts.wav'; // Update dosyasına göre isim
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
