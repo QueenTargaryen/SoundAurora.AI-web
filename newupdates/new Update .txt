@@ -1,56 +1,123 @@
-## Tasks for Claude (EN)
 
-**Do nots:**
+# 🇬🇧 **Final Prompt for Claude (Professional & Precise)**
 
-* Do **not** rewrite files. Touch only what’s listed below.
-* Do not change menus, language toggle, or unrelated layout.
+**Project:** SoundAurora – TTS Update Package
+**Files:** `index.html`, `style.css`, `main.js`
+**Critical Rule:** **Do not rewrite from scratch.** Apply **patches only**. Do **not** change the theme/animations/layout. Keep existing IDs/classes.
 
-**Video tasks:**
+## 0) General Rules
 
-1. **HTML attributes**
+* **No full rewrites**; patch the existing codebase only.
+* Keep the **TR/EN language toggle** behavior intact.
+* All changes must be fully **responsive** across Windows/Mac/iOS/Android/phones/tablets.
+* Theme stays neon gold (#FFD700) + black; preserve current cards and glow/hover vibe.
 
-* Ensure `<video>` has: `autoplay`, `muted`, `playsinline`, `preload="metadata"`.
-* Set a poster image (no black flash).
-* Use **my new file** as the source: `new-intoMP4.mp4` (update the path to where **I** placed it).
-* Remove all old source/preload leftovers.
+## 1) Add **Download** button (TTS)
 
-2. **Responsive layout**
+* In `index.html`, add a button `id="ttsDownload"` in the TTS action row.
 
-* Video must scale proportionally on desktop & mobile.
-* Use `object-fit: cover` for hero/full-bleed; use `contain` if it’s inside a card.
-* Keep width at 100% with a fixed `aspect-ratio` (e.g., 16/9).
-* No overflow/scrollbars.
+  * Text: **EN:** “Download” / **TR:** “İndir”.
+* In `main.js`:
 
-3. **Cross-device compatibility**
+  * **Server TTS** (blob): show `ttsDownload` and save as **`soundaurora-tts.wav`** on click (no persistent server storage).
+  * **Browser TTS** (Web Speech API): keep `ttsDownload` **hidden**.
 
-* Keep `muted+playsinline` for iOS autoplay.
-* If autoplay is blocked, add a user-gesture fallback to call `play()` (aligned with current JS flow).
+## 2) Show **All Voices** (no language filtering)
 
-4. **Accessibility**
+* In `loadVoicesForLanguage()` (or equivalent), **remove language filtering**.
+* Merge **server voices** (`/api/voices`) + **browser voices** into one list.
+* Keep language codes visible in labels (e.g., `Google Deutsch (de-DE)`, `Microsoft Tolga (tr-TR)`).
+* UI language toggle changes **UI texts only**; the **voice list never resets/narrows**.
 
-* Add a meaningful `aria-label` to `<video>`.
-* If captions remain, `<track>` must be VTT; otherwise remove `<track>`.
-* Keyboard: `Space/Enter` toggles play/pause via existing controls.
+## 3) **Gender buttons** and filtering
 
-5. **Performance**
+* Add two buttons above the voice list (left→right):
 
-* Keep `preload="metadata"` to avoid heavy first paint.
-* Don’t re-encode; I handled the file.
-* No console warnings/errors.
+  * **EN:** `Male` / `Female`
+  * **TR:** `Erkek` / `Kadın`
+* When a gender is selected, show **only that gender** across **all languages**.
+* If `/api/voices` lacks `gender`, **infer by name** (fallback).
+* Default active: **EN UI:** `Male`, **TR UI:** `Erkek`.
 
-6. **Behavior**
+## 4) Reading behavior (Text → Speech)
 
-* After intro end or Skip, continue to the next screen seamlessly (respect current app flow).
-* Never auto-unmute; volume changes only on user action.
-* No unwanted restarts when tab visibility changes.
+* Read **exactly** the user text (trim only). **No transliteration/auto-translate.**
+* **Server TTS:** send text as-is.
+* **Browser TTS:** `utterance.voice = selectedVoice`; **do not override** with UI language.
+* Defaults: **Rate = 0.97**, **Pitch = 1.05**, **step = 0.05**.
 
-**Acceptance criteria:**
+## 5) TR/EN language toggle integration
 
-* Proper proportional rendering on all devices.
-* Autoplay works on iOS (muted+playsinline).
-* Intro→Skip flow intact.
-* **Zero** console errors/warnings.
-* No leftover references to the old video.
+* Keep existing toggle logic.
+* Toggling language **MUST NOT** reset/filter the voice list.
+* Gender button labels must switch with UI language (EN↔TR).
+
+## 6) **Rate & Pitch** controls (add)
+
+* `index.html` → inside `#ttsSection` form:
+
+  * **Rate** slider: min `0.5`, max `2`, step `0.05`, **default `0.97`**.
+  * **Pitch** slider: min `0.5`, max `2`, step `0.05`, **default `1.05`**.
+  * Labels: **EN:** `Rate` / `Pitch`, **TR:** `Hız` / `Ton`.
+  * Side-by-side on desktop; **stack vertically on ≤768px**.
+* `main.js`:
+
+  * Bind `utterance.rate` and `utterance.pitch` to these sliders.
+  * Initialize defaults to the above values.
+
+## 7) **License footer** (EN & TR + links)
+
+* Add license footer at the bottom of `index.html`.
+* Text:
+
+  * **EN:** “🔊 All voices are license-free — Details”
+  * **TR:** “🔊 Tüm sesler lisans gerektirmez — Detaylar”
+* Tooltip/content (same list, heading localized):
+
+  * Piper TTS (Apache-2.0) – GitHub
+  * Piper Voices Models – HuggingFace
+  * OpenVoice (MIT) – GitHub
+  * Vosk STT (Apache-2.0) – Official site
+* Links: `target="_blank" rel="noopener"`.
+
+## 8) Responsive & Accessibility
+
+* **Download**, **gender segmented buttons**, and the **expanded voice list** must render correctly on all devices.
+* **≤768px**: stack controls vertically with spacing.
+* Keep focus/hover states consistent with gold/black theme.
+
+## 9) Performance (avoid UI freeze)
+
+* **Do not block the UI** while loading voices:
+
+  * Immediately render **“Loading…”** in the dropdown,
+  * Fetch server + browser voices **asynchronously**,
+  * Populate options **incrementally** (use `requestAnimationFrame` if needed).
+* Use **`voiceschanged`** for `speechSynthesis.getVoices()`; avoid redundant fetch/renders.
+* Language toggle / gender filtering **only filter the in-memory list** (no extra network calls).
+* Make global `scroll/resize/input` handlers **passive + debounced**.
+
+## 10) Visibility flow (no black screen)
+
+* When opening TTS, **do not hide** `mainContent`; hide **`#featuresSection`** only and show **`#ttsSection`**.
+* On back, hide `#ttsSection` and show `#featuresSection`.
+* **Respect these IDs:** `#ttsSection`, `#ttsText`, `#ttsVoice`, `#ttsRate`, `#ttsPitch`, `#ttsPlay`, `#ttsStop`, `#ttsBack`, `#ttsDownload`.
+
+## 11) Deployment
+
+* Apply **all** updates in this package **plus** the previous **“new Update .txt”** patches.
+* Do **not** modify anything beyond these patches; **no rewrites**.
+* Push final code to **GitHub**.
+
+### ✅ Acceptance Checks
+
+* Toggling TR/EN **does not** change the voice list (UI texts only).
+* **Gender** filter works **across all languages**.
+* After **Server TTS**, **Download** appears and saves `.wav`; it stays hidden for **Browser TTS**.
+* **Rate/Pitch** sliders work with defaults (0.97 / 1.05, step 0.05); playback reflects values.
+* No black/blank screen in TTS open/close flow.
+* Mobile stacks controls vertically; theme intact.
+* Smooth first open (async + incremental voice loading).
 
 ---
 

@@ -251,16 +251,22 @@ function updateLanguageDisplay() {
     const maleBtn = document.getElementById('genderMale');
     const femaleBtn = document.getElementById('genderFemale');
     const downloadBtn = document.getElementById('ttsDownload');
+    const rateLabel = document.getElementById('rateLabel');
+    const pitchLabel = document.getElementById('pitchLabel');
     
     if (maleBtn && femaleBtn) {
       if (currentLang === 'tr') {
         maleBtn.textContent = 'Erkek';
         femaleBtn.textContent = 'Kadın';
         if (downloadBtn) downloadBtn.textContent = '📥 İndir';
+        if (rateLabel) rateLabel.textContent = 'Hız (0.5–2)';
+        if (pitchLabel) pitchLabel.textContent = 'Ton (0.5–2)';
       } else {
         maleBtn.textContent = 'Male';
         femaleBtn.textContent = 'Female';
         if (downloadBtn) downloadBtn.textContent = '📥 Download';
+        if (rateLabel) rateLabel.textContent = 'Rate (0.5–2)';
+        if (pitchLabel) pitchLabel.textContent = 'Pitch (0.5–2)';
       }
     }
 }
@@ -645,48 +651,53 @@ async function loadVoicesForLanguage() {
   ttsElements.voiceSelect.innerHTML = '<option value="">Loading voices...</option>';
   availableVoices = [];
 
-  // 1) Sunucu sesleri - TÜM DİLLER
-  try {
-    const res = await fetch('/api/voices');
-    if (res.ok) {
-      const serverVoices = await res.json(); // {id, name, language, ...[gender?]}
-      serverVoices.forEach(v => {
-        if (v.name && v.language) { // Sadece geçerli ses verisi
+  // Show loading in incremental way to avoid UI freeze
+  requestAnimationFrame(async () => {
+    // 1) Sunucu sesleri - TÜM DİLLER (no language filtering)
+    try {
+      const res = await fetch('/api/voices');
+      if (res.ok) {
+        const serverVoices = await res.json(); // {id, name, language, ...[gender?]}
+        serverVoices.forEach(v => {
+          if (v.name && v.language) { // Sadece geçerli ses verisi
+            availableVoices.push({
+              id: v.id,
+              name: `${v.name} (${v.language})`, // Dil kodunu göster
+              language: v.language,
+              gender: v.gender || guessGenderByName(v.name),
+              engine: 'server'
+            });
+          }
+        });
+        // Populate incrementally
+        populateVoiceSelect();
+      }
+    } catch(e) {
+      console.log('Server voices not available:', e);
+    }
+
+    // 2) Tarayıcı sesleri - TÜM DİLLER (no language filtering) 
+    try {
+      const browserVoices = speechSynthesis.getVoices();
+      browserVoices.forEach(bv => {
+        if (bv.name && bv.lang) { // Sadece geçerli ses verisi
           availableVoices.push({
-            id: v.id,
-            name: `${v.name} (${v.language})`, // Dil kodunu göster
-            language: v.language,
-            gender: v.gender || guessGenderByName(v.name),
-            engine: 'server'
+            id: bv.name,
+            name: `${bv.name} (${bv.lang})`, // Dil kodunu göster
+            language: bv.lang,
+            gender: guessGenderByName(bv.name),
+            engine: 'browser',
+            browserVoice: bv
           });
         }
       });
+    } catch(e) {
+      console.log('Browser voices load error:', e);
     }
-  } catch(e) {
-    console.log('Server voices not available:', e);
-  }
 
-  // 2) Tarayıcı sesleri - TÜM DİLLER
-  try {
-    const browserVoices = speechSynthesis.getVoices();
-    browserVoices.forEach(bv => {
-      if (bv.name && bv.lang) { // Sadece geçerli ses verisi
-        availableVoices.push({
-          id: bv.name,
-          name: `${bv.name} (${bv.lang})`, // Dil kodunu göster
-          language: bv.lang,
-          gender: guessGenderByName(bv.name),
-          engine: 'browser',
-          browserVoice: bv
-        });
-      }
-    });
-  } catch(e) {
-    console.log('Browser voices load error:', e);
-  }
-
-  // 3) UI'yi güncelle
-  populateVoiceSelect();
+    // 3) Final UI update
+    populateVoiceSelect();
+  });
 }
 
 function populateVoiceSelect() {
@@ -845,7 +856,7 @@ async function generateWithBrowserTTS(formData) {
         }
         
         utterance.rate = formData.speed;
-        utterance.pitch = 1.05; // Robotic effect azaltmak için
+        utterance.pitch = parseFloat(document.getElementById('ttsPitch')?.value || '1.05');
         utterance.volume = 1.0;
 
         utterance.onend = () => {
@@ -964,13 +975,13 @@ function showTTSPage(){
   __ttsInitOnce();
   if (!__ttsSec) { console.error('TTS section not found'); return; }
 
-  // Ana içerik açık kalsın
+  // Ana içerik açık kalsın - prevent black screen
   if (typeof mainContent !== 'undefined' && mainContent) {
     mainContent.style.display = 'block';
     mainContent.classList.add('show');
   }
 
-  // Sadece özellikler gridini gizle
+  // Sadece özellikler gridini gizle - NOT the entire mainContent
   const features = document.getElementById('featuresSection') || document.querySelector('.features');
   if (features) features.style.display = 'none';
 
@@ -978,7 +989,7 @@ function showTTSPage(){
   __ttsSec.classList.add('show');
   __ttsSec.style.display = 'block';
 
-  // İlk kez ses listesini dolduralım
+  // İlk kez ses listesini dolduralım - load all voices without language filtering
   if ('speechSynthesis' in window) {
     const voices = speechSynthesis.getVoices();
     if (!__ttsEls.voice?.options?.length && voices.length) {
@@ -997,11 +1008,11 @@ function hideTTSPage(){
   // TTS bölümünü gizle
   if (__ttsSec){ __ttsSec.classList.remove('show'); __ttsSec.style.display='none'; }
 
-  // Özellikler gridini geri aç
+  // Özellikler gridini geri aç - restore features section
   const features = document.getElementById('featuresSection') || document.querySelector('.features');
   if (features) features.style.display = 'block';
 
-  // Ana içerik zaten açık kalsın
+  // Ana içerik zaten açık kalsın - maintain main content visibility
   if (typeof mainContent !== 'undefined' && mainContent) {
     mainContent.style.display = 'block';
     setTimeout(()=>mainContent.classList.add('show'), 50);
@@ -1016,6 +1027,7 @@ function __ttsPlayBrowser(){
   const vs = speechSynthesis.getVoices();
   const chosen = vs.find(v=>v.name===__ttsEls.voice?.value);
   if (chosen) u.voice = chosen;
-  u.rate = parseFloat(__ttsEls.rate?.value||'1');
+  u.rate = parseFloat(__ttsEls.rate?.value||'0.97');
+  u.pitch = parseFloat(document.getElementById('ttsPitch')?.value||'1.05');
   speechSynthesis.speak(u);
 }
