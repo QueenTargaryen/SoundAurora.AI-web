@@ -302,13 +302,49 @@ function initIntro() {
         });
     }
     
-    // Video handling
+    // Enhanced video handling with cross-device compatibility
     const video = document.querySelector('.intro-video');
     if (video) {
+        // Ensure video properties for iOS compatibility
+        video.muted = true;
+        video.playsInline = true;
+        
+        // Handle video load and autoplay
         video.addEventListener('loadeddata', () => {
-            video.play().catch(() => {
-                console.log('Video autoplay failed');
+            video.play().catch((error) => {
+                console.log('Video autoplay blocked, setting up user gesture fallback');
+                // Add click handler for manual play
+                const playOnClick = () => {
+                    video.play();
+                    document.removeEventListener('click', playOnClick);
+                    document.removeEventListener('touchstart', playOnClick);
+                };
+                document.addEventListener('click', playOnClick);
+                document.addEventListener('touchstart', playOnClick);
             });
+        });
+        
+        // Prevent video restart on visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                video.pause();
+            }
+        });
+        
+        // Keyboard accessibility for video controls
+        video.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                video.paused ? video.play() : video.pause();
+            }
+        });
+        
+        // Remove loop attribute to respect intro flow
+        video.loop = false;
+        
+        // Handle video end
+        video.addEventListener('ended', () => {
+            showLogin();
         });
     }
 }

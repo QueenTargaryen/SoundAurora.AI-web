@@ -1,123 +1,56 @@
+## Tasks for Claude (EN)
 
----
+**Do nots:**
 
-#  SoundAurora – TTS Update Package (Download + All Voices + Gender Filter + i18n + Responsive)
+* Do **not** rewrite files. Touch only what’s listed below.
+* Do not change menus, language toggle, or unrelated layout.
 
-> Files: `index.html`, `style.css`, `main.js`
-> Rule: **Do not rewrite from scratch.** Only apply the changes exactly as listed below. Do not alter anything else.
+**Video tasks:**
 
----
+1. **HTML attributes**
 
-## 0) General Rules
+* Ensure `<video>` has: `autoplay`, `muted`, `playsinline`, `preload="metadata"`.
+* Set a poster image (no black flash).
+* Use **my new file** as the source: `new-intoMP4.mp4` (update the path to where **I** placed it).
+* Remove all old source/preload leftovers.
 
-* **Do not write new code randomly.** Only patch the existing project with the following changes.
-* All changes must work on **Windows / Mac / iOS / Android / phone / laptop / tablet**, fully responsive.
-* The **TR/EN language toggle** must keep working exactly as before.
+2. **Responsive layout**
 
----
+* Video must scale proportionally on desktop & mobile.
+* Use `object-fit: cover` for hero/full-bleed; use `contain` if it’s inside a card.
+* Keep width at 100% with a fixed `aspect-ratio` (e.g., 16/9).
+* No overflow/scrollbars.
 
-## 1) Add **Download** button in TTS
+3. **Cross-device compatibility**
 
-* In `index.html`, inside the TTS action buttons row, add a new button with `id="ttsDownload"`.
+* Keep `muted+playsinline` for iOS autoplay.
+* If autoplay is blocked, add a user-gesture fallback to call `play()` (aligned with current JS flow).
 
-  * Text: **EN:** “Download” / **TR:** “İndir”.
-* In `main.js`:
+4. **Accessibility**
 
-  * When server TTS (blob output) succeeds, make `ttsDownload` visible and let it download the blob as **`soundaurora-tts.wav`**.
-  * For **Browser TTS** (Web Speech API), keep `ttsDownload` hidden (since browser TTS does not provide audio files).
-* Clicking the download button must directly save to the user’s device. **No permanent storage on server.**
+* Add a meaningful `aria-label` to `<video>`.
+* If captions remain, `<track>` must be VTT; otherwise remove `<track>`.
+* Keyboard: `Space/Enter` toggles play/pause via existing controls.
 
----
+5. **Performance**
 
-## 2) Show **All Voices** (remove language filtering)
+* Keep `preload="metadata"` to avoid heavy first paint.
+* Don’t re-encode; I handled the file.
+* No console warnings/errors.
 
-* In `main.js` → `loadVoicesForLanguage()`: **remove language filtering**.
+6. **Behavior**
 
-  * Combine **server voices** (`/api/voices`) and **browser voices** into one unified list.
-  * Do not restrict by language.
-  * Keep showing the language code in each option label, e.g. `Google Deutsch (de-DE)`, `Microsoft Tolga (tr-TR)`.
-* When user toggles TR/EN for UI, **only UI texts change**. Voice list must remain **complete with all languages visible**.
+* After intro end or Skip, continue to the next screen seamlessly (respect current app flow).
+* Never auto-unmute; volume changes only on user action.
+* No unwanted restarts when tab visibility changes.
 
-👉 Goal: User can choose a German voice to read Turkish text, or a Turkish voice to read German text. The system must always read **whatever text is entered**, regardless of language.
+**Acceptance criteria:**
 
----
-
-## 3) Gender buttons and filtering
-
-* Add two **gender toggle buttons** above the Voice list:
-
-  * **EN UI:** “Male / Female” (this exact order, left to right).
-  * **TR UI:** “Erkek / Kadın” (this exact order, left to right).
-* When a gender is selected, the Voice dropdown must **only show voices of that gender**, across all languages.
-
-  * If `/api/voices` has no gender field, detect gender by voice name (fallback).
-* No language filtering: gender applies globally.
-* Default state:
-
-  * **EN UI:** “Male” active.
-  * **TR UI:** “Erkek” active.
-
----
-
-## 4) Reading behavior (Text → Speech)
-
-* The system must read **exactly the text written** in the input.
-* Do not transliterate or auto-translate. Only trim whitespace.
-* **Server TTS:** send text as-is.
-* **Browser TTS:** set `utterance.voice = selectedVoice`. Do **not override** with UI language; always respect the selected voice’s own language code.
-* Default playback tuning:
-
-  * **Rate:** 0.97 (slider default value).
-  * **Pitch:** 1.05 (to reduce robotic effect).
-  * Slider step size: 0.05.
-
----
-
-## 5) TR/EN language toggle integration
-
-* The toggle button must behave as it already does: TR → EN, EN → TR.
-* Toggling language **must NOT reset or filter the voice list**.
-* Gender button labels must also switch with the UI language:
-
-  * **EN:** “Male / Female”
-  * **TR:** “Erkek / Kadın”
-
----
-
-## 6) License footer (EN & TR + proof links)
-
-* At the bottom of `index.html`, add a **license footer**.
-* The footer text must change with TR/EN toggle:
-
-  * **EN:** “🔊 All voices are license-free — Details”
-  * **TR:** “🔊 Tüm sesler lisans gerektirmez — Detaylar”
-* Tooltip content (must remain the same in both languages, only heading translated):
-
-  * Piper TTS (Apache-2.0) – GitHub
-  * Piper Voices Models – HuggingFace
-  * OpenVoice (MIT) – GitHub
-  * Vosk STT (Apache-2.0) – Official site
-* Links must open in a new tab (`target="_blank" rel="noopener"`).
-* Footer styling stays consistent with current theme.
-
----
-
-## 7) Responsive & accessibility
-
-* The **Download button**, **gender segmented buttons**, and extended **voice list** must display correctly on all devices.
-* On small screens (≤768px), buttons should stack vertically with spacing.
-* Focus/hover states must remain in gold/black theme, consistent with the site.
-
----
-
-## 8) Deployment instruction
-
-* After applying **all updates in this package + the previous `new Update .txt` changes**, push the final code to **GitHub**.
-* Do not skip any code. Do not change anything outside the described patches.
-
----
-
-⚠️ **Important:** These 8 sections are **sufficient**. Please apply exactly as written. Do **not** generate new code or restructure — only patch as instructed.
+* Proper proportional rendering on all devices.
+* Autoplay works on iOS (muted+playsinline).
+* Intro→Skip flow intact.
+* **Zero** console errors/warnings.
+* No leftover references to the old video.
 
 ---
 

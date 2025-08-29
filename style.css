@@ -96,7 +96,7 @@ body {
     pointer-events: none;
 }
 
-/* FIXED: Fully responsive video background */
+/* FIXED: Modern responsive video background with aspect-ratio */
 .intro-video {
     position: absolute;
     top: 50%;
@@ -104,29 +104,22 @@ body {
     transform: translate(-50%, -50%);
     z-index: 1; /* Low z-index - background */
     opacity: 0.8;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    aspect-ratio: 16/9;
     max-width: none;
     max-height: none;
 }
 
-/* Desktop: Fullscreen sharp video */
-@media (min-width: 769px) and (orientation: landscape) {
+/* Desktop: Fullscreen video */
+@media (min-width: 769px) {
     .intro-video {
         width: 100vw;
         height: 100vh;
-        object-fit: cover;
-        border-radius: 0;
         opacity: 0.9;
-    }
-}
-
-/* Desktop Portrait (less common) */
-@media (min-width: 769px) and (orientation: portrait) {
-    .intro-video {
-        width: 100vw;
-        height: 100vh;
-        object-fit: cover;
-        border-radius: 0;
-        opacity: 0.9;
+        aspect-ratio: auto;
     }
 }
 
@@ -135,47 +128,28 @@ body {
     .intro-video {
         width: 80vh;
         height: 80vh;
-        object-fit: cover;
         border-radius: 8px;
+        aspect-ratio: 1/1;
     }
 }
 
-/* Mobile and Tablet Portrait: Full screen vertical format */
+/* Mobile and Tablet Portrait: Full screen */
 @media (max-width: 768px) and (orientation: portrait) {
     .intro-video {
         width: 100vw;
         height: 100vh;
-        object-fit: cover;
         border-radius: 0;
+        aspect-ratio: auto;
     }
 }
 
-/* Samsung Galaxy and similar Android phones - specific optimizations */
-@media (max-width: 480px) and (orientation: portrait) {
-    .intro-video {
-        width: 100vw;
-        height: 100vh;
-        object-fit: cover;
-        object-position: center center;
-    }
-}
-
-/* Ultra-wide screens (21:9, 32:9) */
+/* Ultra-wide screens optimization */
 @media (min-aspect-ratio: 21/9) {
     .intro-video {
         width: 60vh;
         height: 60vh;
-        object-fit: cover;
         border-radius: 15px;
-    }
-}
-
-/* Very tall screens */
-@media (max-aspect-ratio: 9/16) {
-    .intro-video {
-        width: 100vw;
-        height: 56.25vw; /* 16:9 aspect ratio */
-        object-fit: cover;
+        aspect-ratio: 1/1;
     }
 }
 
