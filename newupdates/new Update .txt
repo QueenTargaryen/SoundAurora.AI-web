@@ -1,4 +1,6 @@
-Make the intro.MP4 video fully responsive across devices. 
-On desktop (PC), the video must appear in a square format, centered, aligned properly, and visually sharp. 
-On mobile devices (especially Samsung Android phones), the video must display correctly in vertical (portrait) format. 
-The same video file will be used for both; adjustments should be done only via CSS/HTML.
+Fix the Intro.MP4 video settings:
+- On mobile, the video looks correct, but the Skip button has shifted down. The Skip button must always stay fixed and visible in the bottom-right corner on mobile.  
+- On desktop, the video appears distorted. The intro video should be fullscreen, sharp, and properly aligned on desktop.  
+- The TTS button is still broken. Make the TTS button the same color, size, and alignment as all the other menu buttons.  
+
+Do not break one thing while fixing another. All elements must work together consistently and without issues.
