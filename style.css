@@ -113,7 +113,7 @@ body {
     opacity: 0.8;
 }
 
-/* All mobile devices - aggressive coverage */
+/* All mobile devices - aggressive coverage with proper scaling */
 @media (max-width: 768px) {
     .intro-video {
         position: fixed !important;
@@ -121,13 +121,37 @@ body {
         left: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
-        min-width: 100vw !important;
-        min-height: 100vh !important;
+        min-width: 100% !important;
+        min-height: 100% !important;
         max-width: none !important;
         max-height: none !important;
         object-fit: cover !important;
+        object-position: center center !important;
         transform: none !important;
         border-radius: 0 !important;
+    }
+}
+
+/* Mobile portrait - force vertical scaling */
+@media (max-width: 768px) and (orientation: portrait) {
+    .intro-video {
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: cover !important;
+        object-position: center center !important;
+        transform: scale(1.2) !important;
+        transform-origin: center center !important;
+    }
+}
+
+/* Mobile landscape - different handling */
+@media (max-width: 768px) and (orientation: landscape) {
+    .intro-video {
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: cover !important;
+        object-position: center center !important;
+        transform: none !important;
     }
 }
 
